@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Train Booking Interface</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f5f5f5;
+    }
+
+    #loading-indicator {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(255, 255, 255, 0.9);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    #loading-spinner {
+      width: 50px;
+      height: 50px;
+      border: 5px solid #f3f3f3;
+      border-top: 5px solid #3498db;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 20px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .error-display {
+      font-family: monospace;
+      background-color: #fee;
+      color: #c00;
+      padding: 20px;
+      margin: 20px;
+      border: 1px solid #f88;
+      border-radius: 5px;
+      white-space: pre-wrap;
+      word-break: break-word;
+      max-height: 300px;
+      overflow: auto;
+    }
+
+    #fallback-content {
+      display: none;
+      padding: 20px;
+      max-width: 600px;
+      margin: 50px auto;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Loading indicator -->
+  <div id="loading-indicator">
+    <div id="loading-spinner"></div>
+    <p>Loading Train Booking Interface...</p>
+  </div>
+
+  <!-- React app root -->
+  <div id="root"></div>
+
+  <!-- Fallback content if React fails to load -->
+  <div id="fallback-content">
+    <h1>Train Booking Interface</h1>
+    <p>If you're seeing this, there might be an issue with loading the React application.</p>
+    <div>
+      <h2>Troubleshooting</h2>
+      <ul>
+        <li>Check your browser console for errors (F12 or right-click and select 'Inspect')</li>
+        <li>Make sure your Supabase credentials are properly configured in the .env file</li>
+        <li>Verify that the database tables are set up correctly</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Error container -->
+  <div id="error-container"></div>
+
+  <!-- Main application script -->
+  <script type="module" src="/src/main.jsx"></script>
+
+  <!-- Fallback script -->
+  <script>
+    // Set a timeout to show fallback content if the app doesn't load
+    const loadTimeout = setTimeout(() => {
+      const root = document.getElementById('root');
+      const loadingIndicator = document.getElementById('loading-indicator');
+      const fallbackContent = document.getElementById('fallback-content');
+
+      // If the root is empty (no React content rendered), show fallback
+      if (root && (!root.firstChild || root.children.length === 0)) {
+        if (loadingIndicator) loadingIndicator.style.display = 'none';
+        if (fallbackContent) fallbackContent.style.display = 'block';
+
+        // Add browser info to help debug
+        const debugInfo = document.createElement('div');
+        debugInfo.style.marginTop = '20px';
+        debugInfo.style.padding = '10px';
+        debugInfo.style.backgroundColor = '#f8f8f8';
+        debugInfo.style.borderRadius = '4px';
+        debugInfo.innerHTML = `
+          <h3>Debug Information</h3>
+          <p>URL: ${window.location.href}</p>
+          <p>User Agent: ${navigator.userAgent}</p>
+          <p>Screen: ${window.screen.width}x${window.screen.height}</p>
+          <p>Date/Time: ${new Date().toLocaleString()}</p>
+        `;
+        fallbackContent.appendChild(debugInfo);
+      }
+    }, 10000); // 10 seconds
+
+    // Error event handler
+    window.addEventListener('error', function(event) {
+      const errorContainer = document.getElementById('error-container');
+      const errorDisplay = document.createElement('div');
+      errorDisplay.className = 'error-display';
+      errorDisplay.textContent = 'Application Error: ' + event.message + '\n\nStack: ' + (event.error ? event.error.stack : 'No stack trace available');
+      errorContainer.appendChild(errorDisplay);
+
+      // Hide loading indicator and show fallback if needed
+      const loadingIndicator = document.getElementById('loading-indicator');
+      if (loadingIndicator) loadingIndicator.style.display = 'none';
+    });
+
+    // Hide loading indicator when app loads
+    window.addEventListener('DOMContentLoaded', () => {
+      // We'll keep the timeout in case the React app doesn't render properly
+    });
+
+    document.addEventListener('reactLoaded', () => {
+      clearTimeout(loadTimeout);
+      const loadingIndicator = document.getElementById('loading-indicator');
+      if (loadingIndicator) loadingIndicator.style.display = 'none';
+    });
+  </script>
+</body>
+
+</html>

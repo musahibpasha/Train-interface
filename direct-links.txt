@@ -1,0 +1,12 @@
+Static Test Page: http://172.31.7.43:5173/test-static.html
+Main Application: http://172.31.7.43:5173/
+
+Try opening these URLs directly in your browser.
+The static test page should work even if there are issues with React.
+
+If you're having trouble accessing either page, it might be a network connectivity issue.
+In that case, try:
+1. Using a different browser
+2. Checking your network connection
+3. Checking if a firewall or security software is blocking the connection
+4. Trying a different device on the same network

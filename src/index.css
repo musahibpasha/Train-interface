@@ -1,0 +1,139 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Global styles with purple text and light grey background */
+:root {
+  --purple-primary: #663399;  /* Main purple text color */
+  --purple-dark: #4B2E83;     /* Darker purple for headings */
+  --purple-light: #9370DB;    /* Lighter purple for hover states */
+  --bg-light-grey: #f5f5f5;   /* Light grey background */
+  --text-dark: #333333;       /* Dark text for contrast */
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: var(--bg-light-grey);
+  color: var(--purple-primary);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--purple-dark);
+}
+
+/* Make buttons purple */
+.bg-blue-500 {
+  background-color: var(--purple-primary) !important;
+}
+
+.bg-blue-700:hover {
+  background-color: var(--purple-dark) !important;
+}
+
+.text-blue-500 {
+  color: var(--purple-primary) !important;
+}
+
+.text-blue-700:hover {
+  color: var(--purple-dark) !important;
+}
+
+.border-blue-500 {
+  border-color: var(--purple-primary) !important;
+}
+
+.hover\:bg-blue-700:hover {
+  background-color: var(--purple-dark) !important;
+}
+
+.hover\:text-blue-800:hover {
+  color: var(--purple-dark) !important;
+}
+
+.hover\:bg-blue-50:hover {
+  background-color: #f0e6ff !important; /* Light purple background for hover */
+}
+
+/* Active tab indicator */
+.border-blue-500 {
+  border-color: var(--purple-primary) !important;
+}
+
+/* Date Picker Custom Styles */
+.react-datepicker {
+  font-family: inherit;
+  border-color: #e5e7eb;
+  border-radius: 0.375rem;
+}
+
+.react-datepicker__header {
+  background-color: white;
+  border-bottom: 1px solid #e5e7eb;
+  padding-top: 0.5rem;
+}
+
+.react-datepicker__month {
+  margin: 0.5rem;
+}
+
+.react-datepicker__day-name,
+.react-datepicker__day {
+  width: 2rem;
+  line-height: 2rem;
+  margin: 0.125rem;
+}
+
+.react-datepicker__day--selected {
+  background-color: var(--purple-primary) !important;
+  border-radius: 9999px !important;
+}
+
+.react-datepicker__day:hover {
+  background-color: #f0e6ff !important;
+  border-radius: 9999px;
+}
+
+.react-datepicker__day--keyboard-selected {
+  background-color: #e5e7eb;
+  border-radius: 9999px;
+}
+
+.react-datepicker__navigation {
+  top: 0.75rem;
+}
+
+.react-datepicker__current-month {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.react-datepicker__day--outside-month {
+  color: #9ca3af;
+}
+
+/* Prevent outline on calendar container */
+.custom-calendar {
+  outline: none !important;
+}
+
+/* Quick Selection Buttons */
+.date-quick-selection {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 0.5rem;
+  margin-top: 0.5rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.date-quick-btn {
+  padding: 0.25rem 0.75rem;
+  font-size: 0.875rem;
+  color: var(--purple-primary);
+  border-radius: 0.25rem;
+  transition: background-color 0.2s;
+}
+
+.date-quick-btn:hover {
+  background-color: #f0e6ff;
+}

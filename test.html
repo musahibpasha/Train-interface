@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>React Test Page</title>
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f5f5f5;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+    }
+
+    button {
+      background-color: #4285f4;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    button:hover {
+      background-color: #356ac3;
+    }
+
+    .error-box {
+      background-color: #ffeeee;
+      border: 1px solid #ffcccc;
+      border-radius: 4px;
+      padding: 15px;
+      margin-top: 20px;
+      color: #cc0000;
+    }
+  </style>
+</head>
+<body>
+  <div id="test-root"></div>
+  <div id="error-container"></div>
+
+  <script type="text/babel">
+    // Simple test component
+    function TestApp() {
+      const [counter, setCounter] = React.useState(0);
+
+      return (
+        <div className="container">
+          <h1>React Test Page</h1>
+          <p>This page uses React loaded directly from CDN, bypassing any project configuration issues.</p>
+
+          <div style={{marginTop: "20px"}}>
+            <p>Counter: {counter}</p>
+            <button onClick={() => setCounter(counter + 1)}>
+              Increment Counter
+            </button>
+          </div>
+
+          <div style={{marginTop: "30px", padding: "15px", backgroundColor: "#f8f9fa", borderRadius: "4px"}}>
+            <h3>Troubleshooting Steps:</h3>
+            <ol>
+              <li>If this page works but your main app doesn't, the issue is likely with your project configuration.</li>
+              <li>Make sure all React dependencies are properly installed.</li>
+              <li>Check for any runtime errors in the browser console.</li>
+              <li>Ensure your Supabase credentials are properly configured.</li>
+            </ol>
+          </div>
+        </div>
+      );
+    }
+
+    // Render the app
+    ReactDOM.render(
+      <TestApp />,
+      document.getElementById('test-root')
+    );
+
+    // Error handler
+    window.addEventListener('error', function(event) {
+      const errorContainer = document.getElementById('error-container');
+      const errorBox = document.createElement('div');
+      errorBox.className = 'error-box';
+      errorBox.innerHTML = `<strong>Error:</strong> ${event.message}<br><br><pre>${event.error?.stack || 'No stack trace available'}</pre>`;
+      errorContainer.appendChild(errorBox);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+[images]
+  remote_images = ["https://source.unsplash.com/.*", "https://images.unsplash.com/.*", "https://ext.same-assets.com/.*", "https://ugc.same-assets.com/.*"]
+
+[build]
+  command = "bun run build"
+  publish = "dist"
+  functions = "netlify/functions"
+
+[dev]
+  command = "bun run dev"
+  port = 8888
+  targetPort = 5173
+  publish = "dist"
+  autoLaunch = true
+  framework = "vite"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[functions]
+  node_bundler = "esbuild"
