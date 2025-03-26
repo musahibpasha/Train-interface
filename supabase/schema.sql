@@ -45,53 +45,75 @@ CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
 
--- Create bookings table
-CREATE TABLE IF NOT EXISTS bookings (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
-  from_city TEXT NOT NULL,
-  to_city TEXT NOT NULL,
-  date DATE NOT NULL,
-  train TEXT NOT NULL,
-  train_number TEXT NOT NULL,
-  seats TEXT NOT NULL,
-  status TEXT NOT NULL DEFAULT 'Confirmed', -- Confirmed, Waiting List, Cancelled
-  pnr TEXT NOT NULL,
-  fare DECIMAL(10,2) NOT NULL,
-  class_type TEXT NOT NULL, -- 1A, 2A, 3A, SL, etc.
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+-- First, drop and recreate the bookings table to ensure clean schema
+DROP TABLE IF EXISTS public.bookings CASCADE;
+
+CREATE TABLE public.bookings (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+    train_id UUID REFERENCES public.trains(id),
+    from_city TEXT NOT NULL,
+    to_city TEXT NOT NULL,
+    date DATE NOT NULL,
+    train TEXT NOT NULL,
+    train_number TEXT NOT NULL,
+    seats TEXT,
+    status TEXT NOT NULL DEFAULT 'pending',
+    pnr TEXT,
+    fare DECIMAL(10,2) NOT NULL,
+    class_type TEXT NOT NULL,
+    seat_count INTEGER,
+    total_price DECIMAL(10,2),
+    passenger_name TEXT,
+    passenger_email TEXT,
+    passenger_phone TEXT,
+    passenger_address TEXT,
+    booking_date TIMESTAMPTZ DEFAULT NOW(),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Enable Row-Level Security for bookings
-ALTER TABLE bookings ENABLE ROW LEVEL SECURITY;
+-- Enable RLS
+ALTER TABLE public.bookings ENABLE ROW LEVEL SECURITY;
 
--- Create RLS policies for bookings
-CREATE POLICY "Users can view their own bookings"
-  ON bookings FOR SELECT
-  USING (auth.uid() = user_id);
+-- Add status constraint
+ALTER TABLE public.bookings 
+DROP CONSTRAINT IF EXISTS bookings_status_check;
 
-CREATE POLICY "Users can update their own bookings"
-  ON bookings FOR UPDATE
-  USING (auth.uid() = user_id);
+ALTER TABLE public.bookings 
+ADD CONSTRAINT bookings_status_check 
+CHECK (status IN ('pending', 'confirmed', 'cancelled'));
 
-CREATE POLICY "Users can create their own bookings"
-  ON bookings FOR INSERT
-  WITH CHECK (auth.uid() = user_id);
+-- Create indexes
+CREATE INDEX IF NOT EXISTS idx_bookings_user_id ON public.bookings(user_id);
+CREATE INDEX IF NOT EXISTS idx_bookings_train_id ON public.bookings(train_id);
+CREATE INDEX IF NOT EXISTS idx_bookings_status ON public.bookings(status);
 
--- Create function to update the updated_at timestamp
-CREATE OR REPLACE FUNCTION update_modified_column()
+-- Create booking view
+CREATE OR REPLACE VIEW public.booking_details AS
+SELECT 
+    b.*,
+    t.name as train_name,
+    t.from_station,
+    t.to_station,
+    t.departure_time,
+    t.arrival_time
+FROM public.bookings b
+LEFT JOIN public.trains t ON b.train_id = t.id;
+
+-- Create update trigger
+CREATE OR REPLACE FUNCTION public.update_modified_column()
 RETURNS TRIGGER AS $$
 BEGIN
-  NEW.updated_at = NOW();
-  RETURN NEW;
+    NEW.updated_at = NOW();
+    RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
--- Create trigger for bookings
 CREATE TRIGGER set_bookings_updated_at
-  BEFORE UPDATE ON bookings
-  FOR EACH ROW EXECUTE PROCEDURE update_modified_column();
+    BEFORE UPDATE ON public.bookings
+    FOR EACH ROW
+    EXECUTE FUNCTION public.update_modified_column();
 
 -- Create trigger for profiles
 CREATE TRIGGER set_profiles_updated_at
@@ -114,18 +136,61 @@ INSERT INTO bookings (
 ) VALUES
 -- This is a placeholder. Replace auth.uid() with the actual user ID once created.
 -- You can run this part manually after creating your account:
-/*
+
 (
-  auth.uid(), -- Replace with your user ID
-  'Delhi',
-  'Mumbai',
-  CURRENT_DATE + INTERVAL '7 days',
-  'Rajdhani Express',
-  '12952',
-  '2 (A3, 12, 13)',
-  'Confirmed',
-  'PNR4523627189',
-  2750.00,
-  '3A'
+  INSERT INTO bookings (
+    user_id,
+    from_city,
+    to_city,
+    date,
+    train,
+    train_number,
+    seats,
+    status,
+    pnr,
+    fare,
+    class_type
+  ) VALUES
+  (
+    '8f9b6542-a913-4a65-91e2-e0293ec1b8a4', -- Your specific UUID
+    'Delhi',
+    'Mumbai',
+    CURRENT_DATE + INTERVAL '7 days',
+    'Rajdhani Express',
+    '12952',
+    '2 (A3, 12, 13)',
+    'Confirmed',
+    'PNR4523627189',
+    2750.00,
+    '3A'
+  );
 );
-*/
+
+-- Example booking insertion with new fields
+INSERT INTO bookings (
+  user_id,
+  train_id,
+  seat_count,
+  total_price,
+  passenger_name,
+  passenger_email,
+  passenger_phone,
+  passenger_address,
+  booking_date,
+  status
+) VALUES (
+  '8f9b6542-a913-4a65-91e2-e0293ec1b8a4', -- Your specific UUID
+  (SELECT id FROM trains WHERE train_number = '730c0878-3e3a-4160-aeff-25eaddc301a9' LIMIT 1), -- Get train_id from trains table
+  2,
+  2750.00,
+  'John Doe',
+  'john.doe@example.com',
+  '+1234567890',
+  '123 Main St, City',
+  NOW(),
+  'confirmed'
+);
+
+-- Refresh the schema cache
+ALTER TABLE public.bookings REPLICA IDENTITY FULL;
+

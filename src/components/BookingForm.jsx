@@ -63,97 +63,59 @@ const BookingForm = ({ onClose, selectedTrain = null }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!currentUser) {
-      setError('Please log in to book a train.');
-      return;
-    }
-
-    if (!formData.train_id) {
-      setError('Please select a train.');
-      return;
-    }
-
-    if (!formData.passenger_name || !formData.passenger_email) {
-      setError('Passenger name and email are required.');
-      return;
-    }
+    setLoading(true);
+    setError('');
 
     try {
-      setLoading(true);
-      setError('');
-
-      // Get selected train details
-      const selectedTrain = trains.find(train => train.id === formData.train_id);
-      if (!selectedTrain) {
-        throw new Error('Selected train not found.');
+      const selectedTrainDetails = trains.find(t => t.id === formData.train_id);
+      if (!selectedTrainDetails) {
+        throw new Error('Selected train not found');
       }
 
-      // Check if enough seats are available
-      if (selectedTrain.available_seats < formData.seat_count) {
-        setError(`Only ${selectedTrain.available_seats} seats available.`);
-        return;
-      }
+      const booking = {
+        user_id: currentUser.id,
+        train_id: formData.train_id,
+        passenger_name: formData.passenger_name,
+        passenger_email: formData.passenger_email,
+        passenger_phone: formData.passenger_phone,
+        passenger_address: formData.passenger_address,
+        seat_count: parseInt(formData.seat_count),
+        total_price: selectedTrainDetails.price * parseInt(formData.seat_count),
+        status: 'pending',
+        from_city: selectedTrainDetails.from_station,
+        to_city: selectedTrainDetails.to_station,
+        train: selectedTrainDetails.name,
+        train_number: selectedTrainDetails.train_number,
+        class_type: selectedTrainDetails.class_type,
+        date: new Date(selectedTrainDetails.departure_time).toISOString().split('T')[0]
+      };
 
-      // Calculate total price
-      const totalPrice = parseFloat(selectedTrain.price) * parseInt(formData.seat_count);
-
-      // Generate PNR
-      const pnr = 'PNR' + Math.floor(Math.random() * 9000000000 + 1000000000);
-
-      // Create booking record
       const { data, error } = await supabase
         .from('bookings')
-        .insert([
-          {
-            user_id: currentUser.id,
-            train_id: formData.train_id,
-            seat_count: parseInt(formData.seat_count),
-            total_price: totalPrice,
-            passenger_name: formData.passenger_name,
-            passenger_email: formData.passenger_email,
-            passenger_phone: formData.passenger_phone,
-            passenger_address: formData.passenger_address,
-            status: 'Confirmed',
-            from_city: selectedTrain.from_station,
-            to_city: selectedTrain.to_station,
-            date: new Date(selectedTrain.departure_time).toISOString().split('T')[0],
-            train: selectedTrain.name,
-            train_number: selectedTrain.train_number,
-            seats: `${formData.seat_count} (auto-assigned)`,
-            pnr: pnr,
-            fare: selectedTrain.price,
-            class_type: selectedTrain.class_type
-          }
-        ]);
+        .insert([booking])
+        .select()
+        .single();
 
-      if (error) {
-        throw error;
-      }
-
-      // Update available seats in the train record
-      const { error: updateError } = await supabase
-        .from('trains')
-        .update({ available_seats: selectedTrain.available_seats - parseInt(formData.seat_count) })
-        .eq('id', selectedTrain.id);
-
-      if (updateError) {
-        console.error('Error updating train seats:', updateError);
-        // Don't fail the booking if seat update fails
-      }
+      if (error) throw error;
 
       setSuccess(true);
+      // Reset form
+      setFormData({
+        train_id: '',
+        seat_count: 1,
+        passenger_name: currentUser?.name || '',
+        passenger_email: currentUser?.email || '',
+        passenger_phone: '',
+        passenger_address: ''
+      });
 
-      // Reset form after successful booking
-      setTimeout(() => {
-        if (onClose) {
-          onClose();
-        }
-      }, 3000);
-
-    } catch (err) {
-      console.error('Error booking train:', err);
-      setError(err.message || 'Failed to book train. Please try again.');
+      // If onClose is provided, call it after a delay
+      if (onClose) {
+        setTimeout(onClose, 2000);
+      }
+    } catch (error) {
+      console.error('Error creating booking:', error);
+      setError(error.message || 'Failed to create booking. Please try again.');
     } finally {
       setLoading(false);
     }

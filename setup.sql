@@ -62,6 +62,10 @@ CREATE TABLE IF NOT EXISTS public.bookings (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+-- Ensure passenger_address column is added to bookings table
+ALTER TABLE public.bookings
+ADD COLUMN IF NOT EXISTS passenger_address TEXT;
+
 -- Enable Row-Level Security on bookings table
 ALTER TABLE public.bookings ENABLE ROW LEVEL SECURITY;
 
