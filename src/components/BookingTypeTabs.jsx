@@ -5,6 +5,19 @@ const BookingTypeTabs = ({ activeTab, onTabChange }) => {
     { id: 'live', label: 'Live Train Status' }
   ];
 
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'book':
+        return <BookingForm />;
+      case 'pnr':
+        return <PNRStatus />;
+      case 'live':
+        return <LiveTrainStatus />;
+      default:
+        return null;
+    }
+  };
+
   return (
     <div className="flex space-x-6 mb-4">
       {tabs.map((tab) => (

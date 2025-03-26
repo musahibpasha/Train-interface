@@ -217,9 +217,8 @@ const AppContent = () => {
               excludeCity={fromCity}
             />
             <DatePicker
-              label="Travel Date"
               selectedDate={travelDate}
-              onChange={setTravelDate}
+              onDateSelect={setTravelDate}
             />
             <ClassPicker
               label="Class"

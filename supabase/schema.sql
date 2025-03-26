@@ -194,3 +194,37 @@ INSERT INTO bookings (
 -- Refresh the schema cache
 ALTER TABLE public.bookings REPLICA IDENTITY FULL;
 
+-- First, enable RLS on bookings table
+ALTER TABLE public.bookings ENABLE ROW LEVEL SECURITY;
+
+-- Drop existing policies if any
+DROP POLICY IF EXISTS "Users can view own bookings" ON public.bookings;
+DROP POLICY IF EXISTS "Users can create own bookings" ON public.bookings;
+DROP POLICY IF EXISTS "Users can update own bookings" ON public.bookings;
+DROP POLICY IF EXISTS "Users can delete own bookings" ON public.bookings;
+
+-- Create RLS policies for bookings table
+-- Allow users to view their own bookings
+CREATE POLICY "Users can view own bookings"
+ON public.bookings
+FOR SELECT
+USING (auth.uid() = user_id);
+
+-- Allow users to create their own bookings
+CREATE POLICY "Users can create own bookings"
+ON public.bookings
+FOR INSERT
+WITH CHECK (auth.uid() = user_id);
+
+-- Allow users to update their own bookings
+CREATE POLICY "Users can update own bookings"
+ON public.bookings
+FOR UPDATE
+USING (auth.uid() = user_id);
+
+-- Allow users to delete their own bookings
+CREATE POLICY "Users can delete own bookings"
+ON public.bookings
+FOR DELETE
+USING (auth.uid() = user_id);
+

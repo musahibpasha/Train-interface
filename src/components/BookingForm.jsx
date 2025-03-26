@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import supabase from '../utils/supabaseClient';
 
+const PNR_API_KEY = import.meta.env.VITE_PNR_API_KEY;
+
 const BookingForm = ({ onClose, selectedTrain = null }) => {
   const { currentUser } = useAuth();
   const [trains, setTrains] = useState([]);
@@ -67,55 +69,61 @@ const BookingForm = ({ onClose, selectedTrain = null }) => {
     setError('');
 
     try {
+      // Get current user
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError || !user) {
+        throw new Error('Please login to make a booking');
+      }
+  
       const selectedTrainDetails = trains.find(t => t.id === formData.train_id);
       if (!selectedTrainDetails) {
         throw new Error('Selected train not found');
       }
-
+  
+      // Generate PNR (using your existing logic)
+      const pnrNumber = `PNR${Date.now().toString().slice(-10)}`;
+  
+      // Create booking with explicit user_id
       const booking = {
-        user_id: currentUser.id,
+        user_id: user.id, // Make sure this matches the authenticated user's ID
         train_id: formData.train_id,
+        from_city: selectedTrainDetails.from_station,
+        to_city: selectedTrainDetails.to_station,
+        date: new Date(selectedTrainDetails.departure_time).toISOString().split('T')[0],
+        train: selectedTrainDetails.name,
+        train_number: selectedTrainDetails.train_number,
+        seat_count: parseInt(formData.seat_count),
+        status: 'confirmed',
+        pnr: pnrNumber,
+        fare: selectedTrainDetails.price,
+        total_price: selectedTrainDetails.price * parseInt(formData.seat_count),
+        class_type: selectedTrainDetails.class_type,
         passenger_name: formData.passenger_name,
         passenger_email: formData.passenger_email,
         passenger_phone: formData.passenger_phone,
         passenger_address: formData.passenger_address,
-        seat_count: parseInt(formData.seat_count),
-        total_price: selectedTrainDetails.price * parseInt(formData.seat_count),
-        status: 'pending',
-        from_city: selectedTrainDetails.from_station,
-        to_city: selectedTrainDetails.to_station,
-        train: selectedTrainDetails.name,
-        train_number: selectedTrainDetails.train_number,
-        class_type: selectedTrainDetails.class_type,
-        date: new Date(selectedTrainDetails.departure_time).toISOString().split('T')[0]
+        seats: `${formData.seat_count} (${selectedTrainDetails.class_type})`
       };
-
-      const { data, error } = await supabase
+  
+      const { data, error: insertError } = await supabase
         .from('bookings')
         .insert([booking])
         .select()
         .single();
-
-      if (error) throw error;
-
+  
+      if (insertError) {
+        console.error('Booking error:', insertError);
+        throw new Error('Failed to create booking. Please try again.');
+      }
+  
       setSuccess(true);
-      // Reset form
-      setFormData({
-        train_id: '',
-        seat_count: 1,
-        passenger_name: currentUser?.name || '',
-        passenger_email: currentUser?.email || '',
-        passenger_phone: '',
-        passenger_address: ''
-      });
-
-      // If onClose is provided, call it after a delay
       if (onClose) {
         setTimeout(onClose, 2000);
       }
     } catch (error) {
-      console.error('Error creating booking:', error);
-      setError(error.message || 'Failed to create booking. Please try again.');
+      console.error('Error:', error);
+      setError(error.message);
     } finally {
       setLoading(false);
     }

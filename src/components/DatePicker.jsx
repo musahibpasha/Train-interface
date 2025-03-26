@@ -1,29 +1,32 @@
-import { useState, useRef, useEffect } from 'react';
-import ReactDatePicker from 'react-datepicker';
+import React, { useState, useRef, useEffect } from 'react';
+import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 
-const DatePicker = ({ selectedDate, onDateSelect }) => {
+const CustomDatePicker = ({ selectedDate, onDateSelect = () => {} }) => {
   const [isOpen, setIsOpen] = useState(false);
   const datePickerRef = useRef(null);
 
   // Format the date as shown in the screenshot: "24 Mar' 25"
   const formatDate = (date) => {
     if (!date) return '';
-
     const day = date.getDate();
     const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     const month = monthNames[date.getMonth()];
     const year = date.getFullYear().toString().slice(-2);
-
     return `${day} ${month}' ${year}`;
   };
 
   // Get day of week
   const getDayOfWeek = (date) => {
     if (!date) return '';
-
     const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
     return days[date.getDay()];
+  };
+
+  // Handle date change from the date picker
+  const handleDateChange = (date) => {
+    onDateSelect(date);
+    setIsOpen(false);
   };
 
   // Close dropdown when clicking outside
@@ -40,12 +43,6 @@ const DatePicker = ({ selectedDate, onDateSelect }) => {
     };
   }, []);
 
-  // Handle date change from the date picker
-  const handleDateChange = (date) => {
-    onDateSelect(date);
-    setIsOpen(false);
-  };
-
   return (
     <div className="relative" ref={datePickerRef}>
       <div
@@ -60,7 +57,7 @@ const DatePicker = ({ selectedDate, onDateSelect }) => {
       {isOpen && (
         <div className="absolute top-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg z-20">
           <div className="p-3">
-            <ReactDatePicker
+            <DatePicker
               selected={selectedDate}
               onChange={handleDateChange}
               inline
@@ -102,4 +99,24 @@ const DatePicker = ({ selectedDate, onDateSelect }) => {
   );
 };
 
-export default DatePicker;
+CustomDatePicker.defaultProps = {
+  selectedDate: new Date(),
+  onDateSelect: () => {}
+};
+
+const YourParentComponent = () => {
+  const [date, setDate] = useState(new Date());
+
+  const handleDateSelect = (selectedDate) => {
+    setDate(selectedDate);
+  };
+
+  return (
+    <CustomDatePicker 
+      selectedDate={date}
+      onDateSelect={handleDateSelect}
+    />
+  );
+};
+
+export default CustomDatePicker;
