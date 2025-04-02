@@ -6,7 +6,7 @@ import DatePicker from './components/DatePicker';
 import ClassPicker from './components/ClassPicker';
 import SearchButton from './components/SearchButton';
 import BookingTypeTabs from './components/BookingTypeTabs';
-import NavIcons from './components/NavIcons';
+// import NavIcons from './components/NavIcons';
 import OffersSection from './components/OffersSecion';
 import TrainSearchResults from './components/TrainSearchResults';
 import BookingForm from './components/BookingForm';
@@ -194,7 +194,7 @@ const AppContent = () => {
       )}
 
       <div className="mx-auto max-w-7xl px-4 py-6">
-        <NavIcons />
+        {/* <NavIcons /> */}
 
         <div className="mt-6 bg-white rounded-lg shadow-md p-6">
           <BookingTypeTabs activeTab={activeTab} onTabChange={handleTabChange} />
