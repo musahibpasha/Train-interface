@@ -197,45 +197,11 @@ export const AuthProvider = ({ children }) => {
         password,
       });
 
+      console.log('Login response:', { data, error });
+
       if (error) {
         console.error('Login error:', error);
-        if (error.code === 'email_not_confirmed') {
-          setVerificationEmail(email);
-          setVerificationSent(true);
-          return {
-            success: false,
-            error: 'Email not confirmed. Please check your inbox for the verification link.',
-            needsVerification: true
-          };
-        }
         return { success: false, error: error.message };
-      }
-
-      // Create profile for the user if it doesn't exist
-      try {
-        const { data: profileExists, error: checkError } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('id', data.user.id)
-          .single();
-
-        if (checkError && checkError.code === 'PGRST116') {
-          // Profile doesn't exist, create one
-          const { error: createError } = await supabase
-            .from('profiles')
-            .insert([{
-              id: data.user.id,
-              name: data.user.user_metadata?.name || data.user.email.split('@')[0],
-              email: data.user.email,
-              created_at: new Date().toISOString()
-            }]);
-
-          if (createError) {
-            console.error('Error creating profile during login:', createError);
-          }
-        }
-      } catch (profileError) {
-        console.error('Error checking/creating profile:', profileError);
       }
 
       return { success: true, data };

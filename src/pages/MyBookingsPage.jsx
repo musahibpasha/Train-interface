@@ -1,8 +1,7 @@
-import { useState, useRef, useEffect } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import LoginModal from './LoginModal';
-import MyBookings from './MyBookings';
-import AvailableTrains from './AvailableTrains'; // Import the new component
+import MyBookingsPage from '../pages/MyBookingsPage';
 
 const Header = () => {
   const { currentUser, logout } = useAuth();
@@ -129,11 +128,8 @@ const Header = () => {
         </div>
       </div>
 
-      {/* Available Trains */}
-      {/* {!showBookingsPage && <AvailableTrains />} */}
-
       {/* My Bookings Page */}
-      {showBookingsPage && <MyBookings />}
+      {showBookingsPage && <MyBookingsPage />}
 
       {/* Login Modal */}
       <LoginModal

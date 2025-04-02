@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import supabase from '../utils/supabaseClient';
 
+
+
 const PNR_API_KEY = import.meta.env.VITE_PNR_API_KEY;
 
 const BookingForm = ({ onClose, selectedTrain = null }) => {
@@ -10,6 +12,7 @@ const BookingForm = ({ onClose, selectedTrain = null }) => {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
+  const [promoCode, setPromoCode] = useState('');
   const [formData, setFormData] = useState({
     train_id: selectedTrain?.id || '',
     seat_count: 1,
@@ -241,7 +244,36 @@ const BookingForm = ({ onClose, selectedTrain = null }) => {
               className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
           </div>
+  {/* Promo Code */}
+  <div className="space-y-2 mb-4">
+          <div className="flex items-center gap-2 mb-1">
+            <Tag className="h-4 w-4" />
+            <span className="text-sm font-medium">Promo Code</span>
+          </div>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              className="w-full p-2 border rounded text-sm font-mono"
+              placeholder="Enter promo code"
+              value={promoCode}
+              onChange={(e) => setPromoCode(e.target.value)}
+            />
+            <Button
+              variant="outline"
+              size="sm"
+              className="whitespace-nowrap text-xs"
+            >
+              Apply Code
+            </Button>
+          </div>
 
+          {promoCode && (
+            <p className="text-xs text-primary">
+              Promotional code "{promoCode}" will be applied to your booking.
+            </p>
+          )}
+        </div>
+          {/* Booking Summary */}
           {formData.train_id && (
             <div className="mb-6 bg-gray-50 p-4 rounded">
               <h3 className="font-medium text-gray-700 mb-2">Booking Summary</h3>

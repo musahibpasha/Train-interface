@@ -9,7 +9,11 @@ const MyBookings = () => {
   const { currentUser } = useAuth();
 
   useEffect(() => {
-    fetchBookings();
+    if (currentUser) {
+      fetchBookings();
+    } else {
+      setBookings([]); // Clear bookings when user logs out
+    }
   }, [currentUser]);
 
   const fetchBookings = async () => {
@@ -35,7 +39,7 @@ const MyBookings = () => {
       setBookings(data || []);
     } catch (err) {
       console.error('Error fetching bookings:', err);
-      setError('Failed to load bookings');
+      // setError('Failed to fetch bookings');
     } finally {
       setLoading(false);
     }

@@ -7,11 +7,11 @@ import ClassPicker from './components/ClassPicker';
 import SearchButton from './components/SearchButton';
 import BookingTypeTabs from './components/BookingTypeTabs';
 import NavIcons from './components/NavIcons';
-import OffersSection from './components/OffersSection';
-import MyBookings from './components/MyBookings';
+import OffersSection from './components/OffersSecion';
 import TrainSearchResults from './components/TrainSearchResults';
 import BookingForm from './components/BookingForm';
 import checkSupabaseConnection from './utils/checkConnection';
+import AvailableTrains from './components/AvailableTrains'; // Import the AvailableTrains component
 
 // Sample cities data - use the cities mentioned in the trains
 const cities = [
@@ -226,7 +226,35 @@ const AppContent = () => {
               onClassSelect={handleClassSelect}
             />
           </div>
+          {/* Promo Code
+          <div className="space-y-2 mb-4">
+            <div className="flex items-center gap-2 mb-1">
+              <Tag className="h-4 w-4" />
+              <span className="text-sm font-medium">Promo Code</span>
+            </div>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                className="w-full p-2 border rounded text-sm font-mono"
+                placeholder="Enter promo code"
+                value={promoCode}
+                onChange={(e) => setPromoCode(e.target.value)}
+              />
+              <Button
+                variant="outline"
+                size="sm"
+                className="whitespace-nowrap text-xs"
+              >
+                Apply Code
+              </Button>
+            </div>
 
+            {promoCode && (
+              <p className="text-xs text-primary">
+                Promotional code "{promoCode}" will be applied to your booking.
+              </p>
+            )}
+          </div> */}
           <div className="mt-6">
             <SearchButton onClick={handleSearch} />
           </div>
@@ -248,7 +276,8 @@ const AppContent = () => {
           </div>
         )}
 
-        {currentUser && <MyBookings />}
+        {/* Replace MyBookings with AvailableTrains */}
+        <AvailableTrains />
 
         <OffersSection />
       </div>

@@ -51,7 +51,7 @@ const TrainSearchResults = ({ fromCity, toCity, date, seatClass, onBookTrain }) 
         setTrains(availableTrains || []);
       } catch (err) {
         console.error('Error fetching trains:', err);
-        setError('Failed to load available trains. Please try again.');
+        setError(' available trains. Please try again.');
       } finally {
         setLoading(false);
       }
