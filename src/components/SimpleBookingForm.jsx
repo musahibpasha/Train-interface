@@ -113,18 +113,47 @@ const SimpleBookingForm = () => {
   };
 
   return (
-    <div style={{padding: '20px', maxWidth: '500px', margin: '0 auto', backgroundColor: 'white', borderRadius: '8px'}}>
-      <h2 style={{marginBottom: '20px', fontSize: '20px', fontWeight: 'bold'}}>Book a Train Ticket</h2>
+    <div
+      style={{
+        padding: '20px',
+        maxWidth: '500px',
+        margin: '0 auto',
+        backgroundImage: `url(${require('../assests/offers2.jpeg')})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        borderRadius: '8px',
+        color: 'white', // Adjust text color for better contrast
+      }}
+    >
+      <h2 style={{ marginBottom: '20px', fontSize: '20px', fontWeight: 'bold' }}>
+        Book a Train Ticket
+      </h2>
 
       {error && (
-        <div style={{padding: '10px', marginBottom: '20px', backgroundColor: '#fee2e2', color: '#b91c1c', borderRadius: '4px'}}>
+        <div
+          style={{
+            padding: '10px',
+            marginBottom: '20px',
+            backgroundColor: '#fee2e2',
+            color: '#b91c1c',
+            borderRadius: '4px',
+          }}
+        >
           {error}
         </div>
       )}
 
       {success ? (
-        <div style={{padding: '10px', marginBottom: '20px', backgroundColor: '#d1fae5', color: '#065f46', borderRadius: '4px'}}>
-          <h3 style={{fontWeight: 'bold'}}>Booking Successful!</h3>
+        <div
+          style={{
+            padding: '10px',
+            marginBottom: '20px',
+            backgroundColor: '#d1fae5',
+            color: '#065f46',
+            borderRadius: '4px',
+          }}
+        >
+          <h3 style={{ fontWeight: 'bold' }}>Booking Successful!</h3>
           <p>Your train ticket has been booked successfully.</p>
         </div>
       ) : (
@@ -228,7 +257,7 @@ const SimpleBookingForm = () => {
               border: 'none',
               borderRadius: '4px',
               fontWeight: '500',
-              cursor: loading ? 'not-allowed' : 'pointer'
+              cursor: loading ? 'not-allowed' : 'pointer',
             }}
           >
             {loading ? 'Processing...' : 'Book Now'}

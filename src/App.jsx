@@ -12,6 +12,7 @@ import TrainSearchResults from './components/TrainSearchResults';
 import BookingForm from './components/BookingForm';
 import checkSupabaseConnection from './utils/checkConnection';
 import AvailableTrains from './components/AvailableTrains'; // Import the AvailableTrains component
+ // Ensure you have a CSS file for styling
 
 // Sample cities data - use the cities mentioned in the trains
 const cities = [
@@ -140,6 +141,19 @@ const AppContent = () => {
 
   return (
     <div className="min-h-screen bg-gray-100">
+      {/* Cover Image Section */}
+      <div
+        className="h-64 bg-cover bg-center"
+        style={{
+          backgroundImage: `url('https://images.unsplash.com/photo-1535535112387-56ffe8db21ff?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8dHJhaW58ZW58MHx8MHx8fDA%3D')`,
+        }}
+      >
+        <div className="h-full flex items-center justify-center bg-black bg-opacity-50">
+          <h1 className="text-white text-4xl font-bold">Welcome to Train Booking</h1>
+        </div>
+      </div>
+
+      {/* Rest of the content */}
       <Header />
 
       {connectionStatus && !connectionStatus.success && (
