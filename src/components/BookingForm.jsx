@@ -4,11 +4,17 @@ import supabase from '../utils/supabaseClient';
 import adaniImage from '../assests/adani one offers.jpg';
 import offersImage from '../assests/offers.jpg';
 import offers2Image from '../assests/offers2.jpeg';
-import bg from '../assests/bg.png' // make sure this image exists
+import bg from '../assests/bg.png';
 import { Tag } from 'lucide-react';
-import { Button } from './ui/Button'; // adjust if you have a button component
+import { Button } from './ui/Button'; // Assuming you have Button component
+import CityDropdown from './CityDropdown';
+import DatePicker from './DatePicker';
 
-const PNR_API_KEY = import.meta.env.VITE_PNR_API_KEY;
+const cities = [
+  'Delhi', 'Mumbai', 'Chennai', 'Kolkata', 'Bangalore',
+  'Hyderabad', 'Ahmedabad', 'Pune', 'Jaipur', 'Patna',
+  'Howrah', 'New Delhi'
+];
 
 const availableOffers = [
   {
@@ -43,7 +49,7 @@ const availableOffers = [
   }
 ];
 
-const BookingForm = ({ onClose, selectedTrain = null }) => {
+const BookingForm = ({ onClose }) => {
   const { currentUser } = useAuth();
   const [trains, setTrains] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -51,16 +57,19 @@ const BookingForm = ({ onClose, selectedTrain = null }) => {
   const [error, setError] = useState('');
   const [promoCode, setPromoCode] = useState('');
   const [appliedOffer, setAppliedOffer] = useState(null);
+  const [fromCity, setFromCity] = useState('');
+  const [toCity, setToCity] = useState('');
+  const [travelDate, setTravelDate] = useState(new Date());
   const [formData, setFormData] = useState({
-    train_id: selectedTrain?.id || '',
+    train_id: '',
     seat_count: 1,
     passenger_name: currentUser?.name || '',
     passenger_email: currentUser?.email || '',
     passenger_phone: '',
     passenger_address: '',
+    class_type: 'ALL',
   });
 
-  // Fetch available trains
   useEffect(() => {
     const fetchTrains = async () => {
       try {
@@ -85,16 +94,6 @@ const BookingForm = ({ onClose, selectedTrain = null }) => {
     fetchTrains();
   }, []);
 
-  // Initialize with selected train if provided
-  useEffect(() => {
-    if (selectedTrain) {
-      setFormData(prev => ({
-        ...prev,
-        train_id: selectedTrain.id
-      }));
-    }
-  }, [selectedTrain]);
-
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({
@@ -103,7 +102,6 @@ const BookingForm = ({ onClose, selectedTrain = null }) => {
     });
   };
 
-  // Apply promo code by checking against available offers
   const handleApplyPromoCode = () => {
     const matchingOffer = availableOffers.find(
       offer => offer.code.toLowerCase() === promoCode.trim().toLowerCase()
@@ -125,33 +123,29 @@ const BookingForm = ({ onClose, selectedTrain = null }) => {
     setError('');
 
     try {
-      // Get current user
       const { data: { user }, error: userError } = await supabase.auth.getUser();
       if (userError || !user) {
         throw new Error('Please login to make a booking');
       }
-  
+
       const selectedTrainDetails = trains.find(t => t.id === formData.train_id);
       if (!selectedTrainDetails) {
         throw new Error('Selected train not found');
       }
-  
-      // Generate PNR (using your existing logic)
+
       const pnrNumber = `PNR${Date.now().toString().slice(-10)}`;
-  
-      // Calculate total price (modify discount calculation as needed)
+
       const seatCount = parseInt(formData.seat_count);
       const baseTotal = selectedTrainDetails.price * seatCount;
       const discount = appliedOffer ? (appliedOffer.discountPercentage / 100) * baseTotal : 0;
       const totalPrice = baseTotal - discount;
-  
-      // Create booking with explicit user_id
+
       const booking = {
         user_id: user.id,
         train_id: formData.train_id,
-        from_city: selectedTrainDetails.from_station,
-        to_city: selectedTrainDetails.to_station,
-        date: new Date(selectedTrainDetails.departure_time).toISOString().split('T')[0],
+        from_city: fromCity,
+        to_city: toCity,
+        date: travelDate.toISOString().split('T')[0],
         train: selectedTrainDetails.name,
         train_number: selectedTrainDetails.train_number,
         seat_count: seatCount,
@@ -159,25 +153,25 @@ const BookingForm = ({ onClose, selectedTrain = null }) => {
         pnr: pnrNumber,
         fare: selectedTrainDetails.price,
         total_price: totalPrice,
-        class_type: selectedTrainDetails.class_type,
+        class_type: formData.class_type,
         passenger_name: formData.passenger_name,
         passenger_email: formData.passenger_email,
         passenger_phone: formData.passenger_phone,
         passenger_address: formData.passenger_address,
         seats: `${formData.seat_count} (${selectedTrainDetails.class_type})`
       };
-  
+
       const { data, error: insertError } = await supabase
         .from('bookings')
         .insert([booking])
         .select()
         .single();
-  
+
       if (insertError) {
         console.error('Booking error:', insertError);
         throw new Error('Failed to create booking. Please try again.');
       }
-  
+
       setSuccess(true);
       if (onClose) {
         setTimeout(onClose, 2000);
@@ -191,12 +185,11 @@ const BookingForm = ({ onClose, selectedTrain = null }) => {
   };
 
   return (
-    <div 
-      className="max-w-4xl mx-auto p-6 rounded-lg shadow-md" 
-      style={{ 
-        backgroundImage: `url(${bg})`, 
-        backgroundSize: 'cover', 
-        backgroundPosition: 'center' 
+    <div
+      className="max-w-4xl mx-auto p-6 rounded-lg shadow-md"
+      style={{
+        backgroundSize: 'cover',
+        backgroundPosition: 'center'
       }}
     >
       <h2 className="text-xl font-semibold text-gray-800 mb-4">Book Train Ticket</h2>
@@ -214,19 +207,67 @@ const BookingForm = ({ onClose, selectedTrain = null }) => {
         </div>
       ) : (
         <form onSubmit={handleSubmit}>
-          {/* Train selection section */}
-          <div 
-            className="mb-6 p-4 rounded" 
-            style={{ 
-              backgroundImage: `url(${bg})`, 
-              backgroundSize: 'cover', 
-              backgroundPosition: 'center' 
+          {/* ... (rest of the form remains the same) */}
+          <div
+            className="mb-6 p-4 rounded"
+            style={{
+              backgroundImage: `url(${bg})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center'
             }}
           >
             <div className="mb-4">
-              <label htmlFor="train_id" className="block text-sm font-medium text-gray-700 mb-1">
-                Select Train
-              </label>
+              
+              <CityDropdown
+                label="From"
+                cities={cities}
+                value={fromCity}
+                onChange={setFromCity}
+                placeholder="Enter origin city"
+                excludeCity={toCity}
+                className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                required
+              />
+            </div>
+            <div className="mb-4">
+              
+              <CityDropdown
+                label="To"
+                cities={cities}
+                value={toCity}
+                onChange={setToCity}
+                placeholder="Enter destination city"
+                excludeCity={fromCity}
+                className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                required
+              />
+            </div>
+            <div className="mb-4">
+              
+              <DatePicker
+                selectedDate={travelDate}
+                onDateSelect={setTravelDate}
+                className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                required
+              />
+            </div>
+            <div className="mb-4">
+             
+              <select
+                id="class_type"
+                name="class_type"
+                value={formData.class_type}
+                onChange={handleChange}
+                className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                required
+              >
+                <option value="ALL">ALL</option>
+                <option value="AC">AC</option>
+                <option value="NON-AC">NON-AC</option>
+              </select>
+            </div>
+            <div className="mb-4">
+              
               <select
                 id="train_id"
                 name="train_id"
@@ -243,14 +284,10 @@ const BookingForm = ({ onClose, selectedTrain = null }) => {
                 ))}
               </select>
             </div>
-            {/* Additional sections such as live status can be placed here */}
-            {/* ... */}
           </div>
 
           <div className="mb-4">
-            <label htmlFor="seat_count" className="block text-sm font-medium text-gray-700 mb-1">
-              Number of Seats
-            </label>
+            
             <input
               type="number"
               id="seat_count"
@@ -321,15 +358,13 @@ const BookingForm = ({ onClose, selectedTrain = null }) => {
               className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
           </div>
-
-          {/* Promo Code Section */}
-          <div className="space-y-2 mb-4">
+           <div className="space-y-2 mb-4">
             <div className="flex items-center gap-2 mb-1">
               <Tag className="h-4 w-4" />
               <span className="text-sm font-medium">Promo Code</span>
             </div>
             <div className="flex gap-2">
-              <input
+               <input
                 type="text"
                 className="w-full p-2 border rounded text-sm font-mono"
                 placeholder="Enter promo code"
@@ -346,32 +381,31 @@ const BookingForm = ({ onClose, selectedTrain = null }) => {
                 Apply Code
               </Button>
             </div>
-            {promoCode && appliedOffer && (
+             {promoCode && appliedOffer && (
               <p className="text-xs text-green-700">
                 Applied Promo: {appliedOffer.code} ({appliedOffer.discountPercentage}% Off)
               </p>
             )}
-          </div>
+           </div>
 
-          {/* Offers Section */}
           <div className="mb-6">
             <h3 className="text-md font-medium text-gray-700 mb-2">Or Apply an Offer</h3>
             <div className="grid grid-cols-3 gap-4">
               {availableOffers.map((offer) => (
-                <div 
-                  key={offer.id} 
+                <div
+                  key={offer.id}
                   className="border rounded-lg overflow-hidden flex flex-col"
                 >
-                  <img 
-                    src={offer.image} 
-                    alt={offer.title} 
+                  <img
+                    src={offer.image}
+                    alt={offer.title}
                     className="w-full h-32 object-cover"
                   />
                   <div className="p-2 flex flex-col flex-grow">
                     <h4 className="text-sm font-semibold">{offer.title}</h4>
                     <p className="text-xs">{offer.description}</p>
                     <p className="text-xs mt-1"><strong>{offer.discountPercentage}% Off</strong></p>
-                    <button 
+                    <button
                       type="button"
                       onClick={() => handleApplyOffer(offer)}
                       className="mt-auto text-xs text-purple-600 hover:underline"
@@ -390,8 +424,6 @@ const BookingForm = ({ onClose, selectedTrain = null }) => {
               </div>
             )}
           </div>
-
-          {/* Booking Summary */}
           {formData.train_id && (
             <div className="mb-6 bg-gray-50 p-4 rounded">
               <h3 className="font-medium text-gray-700 mb-2">Booking Summary</h3>
@@ -420,25 +452,23 @@ const BookingForm = ({ onClose, selectedTrain = null }) => {
               })()}
             </div>
           )}
-
           <div className="flex justify-end space-x-2">
             {onClose && (
-              <button
+              <Button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
+                variant="outline"
                 disabled={loading}
               >
                 Cancel
-              </button>
+              </Button>
             )}
-            <button
+            <Button
               type="submit"
-              className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500"
               disabled={loading}
             >
               {loading ? 'Processing...' : 'Book Now'}
-            </button>
+            </Button>
           </div>
         </form>
       )}
