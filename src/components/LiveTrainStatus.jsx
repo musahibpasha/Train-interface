@@ -1,32 +1,39 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import supabase from '../utils/supabaseClient';
+import { GoogleMap, Marker, useLoadScript } from '@react-google-maps/api';
 
-const LiveTrainStatus = () => {
+const mapContainerStyle = {
+  width: '100%',
+  height: '400px'
+};
+
+const LiveTrainStatus = ({ showLiveStatus, location, coordinates, fetchLocation }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [myBookings, setMyBookings] = useState([]);
   const [selectedBooking, setSelectedBooking] = useState('');
 
-  // Fetch user's bookings
+  const { isLoaded } = useLoadScript({
+    googleMapsApiKey: 'AIzaSyB7ZjmQo0re78EECTh9gyxdFVbph8XxEZs'
+  });
+
   useEffect(() => {
+    if (!showLiveStatus) return;
+
     const fetchBookings = async () => {
       setLoading(true);
       setError(null);
 
       try {
         const { data: { user }, error: userError } = await supabase.auth.getUser();
-        if (userError || !user) {
-          throw new Error('Please log in to view your bookings.');
-        }
+        if (userError || !user) throw new Error('Please log in to view your bookings.');
 
         const { data, error: bookingsError } = await supabase
           .from('bookings')
           .select('*')
           .eq('user_id', user.id);
 
-        if (bookingsError) {
-          throw bookingsError;
-        }
+        if (bookingsError) throw bookingsError;
 
         setMyBookings(data || []);
       } catch (err) {
@@ -38,11 +45,23 @@ const LiveTrainStatus = () => {
     };
 
     fetchBookings();
-  }, []);
+  }, [showLiveStatus]);
+
+  useEffect(() => {
+    if (selectedBooking && fetchLocation) {
+      const booking = myBookings.find((b) => b.id === selectedBooking);
+      if (booking) {
+        fetchLocation(booking.from_city, booking.to_city);
+      }
+    }
+  }, [selectedBooking]);
 
   const handleBookingChange = (e) => {
     setSelectedBooking(e.target.value);
   };
+
+  if (!showLiveStatus) return null;
+  if (!isLoaded) return <div>Loading map...</div>;
 
   return (
     <div className="max-w-2xl mx-auto p-6">
@@ -74,33 +93,37 @@ const LiveTrainStatus = () => {
       </div>
 
       {selectedBooking && (
-        <div className="bg-white rounded-lg shadow-md p-6 mt-6">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">Booking Details</h3>
-          {myBookings
-            .filter((booking) => booking.id === selectedBooking)
-            .map((booking) => (
-              <div key={booking.id} className="space-y-4">
-                <p>
-                  <span className="font-medium">Train:</span> {booking.train}
-                </p>
-                <p>
-                  <span className="font-medium">Route:</span> {booking.from_city} to {booking.to_city}
-                </p>
-                <p>
-                  <span className="font-medium">PNR:</span> {booking.pnr}
-                </p>
-                <p>
-                  <span className="font-medium">Date:</span> {new Date(booking.date).toLocaleDateString()}
-                </p>
-                <p>
-                  <span className="font-medium">Seats:</span> {booking.seats}
-                </p>
-                <p>
-                  <span className="font-medium">Total Price:</span> ₹{booking.total_price}
-                </p>
-              </div>
-            ))}
-        </div>
+        <>
+          <div className="bg-white rounded-lg shadow-md p-6 mt-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">Booking Details</h3>
+            {myBookings
+              .filter((booking) => booking.id === selectedBooking)
+              .map((booking) => (
+                <div key={booking.id} className="space-y-4">
+                  <p><span className="font-medium">Train:</span> {booking.train}</p>
+                  <p><span className="font-medium">Route:</span> {booking.from_city} to {booking.to_city}</p>
+                  <p><span className="font-medium">PNR:</span> {booking.pnr}</p>
+                  <p><span className="font-medium">Date:</span> {new Date(booking.date).toLocaleDateString()}</p>
+                  <p><span className="font-medium">Seats:</span> {booking.seats}</p>
+                  <p><span className="font-medium">Total Price:</span> ₹{booking.total_price}</p>
+                </div>
+              ))}
+          </div>
+
+          <div className="mt-6">
+            <h2 className="text-xl font-semibold mb-2">Live Train Status</h2>
+            <p className="mb-2 text-gray-700">
+              <span className="font-medium">Train is currently at:</span> {location || 'Fetching live location...'}
+            </p>
+            <GoogleMap
+              mapContainerStyle={mapContainerStyle}
+              center={coordinates || { lat: 20.5937, lng: 78.9629 }} // Default to India center
+              zoom={6}
+            >
+              {coordinates && <Marker position={coordinates} />}
+            </GoogleMap>
+          </div>
+        </>
       )}
     </div>
   );
