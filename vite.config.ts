@@ -9,6 +9,6 @@ export default defineConfig({
     'import.meta.env.VITE_SUPABASE_ANON_KEY': JSON.stringify('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InplaHRmcWtibGx6ZmJicWtvY3RtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI3NDE2NjEsImV4cCI6MjA1ODMxNzY2MX0.wVEdlL4oPTRMX0tivVTau1vx-f79khl8QYQ3wObbZq0')
   },
   server: {
-    port: 5000, // Change this to your desired port
+    port: 3000, // Change this to your desired port
   },
 })
