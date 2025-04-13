@@ -20,6 +20,7 @@ const BookingTypeTabs = ({ activeTab, onTabChange }) => {
   };
 
   const handleTabClick = (tabId) => {
+    onTabChange(tabId);
     if (tabId === 'book') {
       setShowBookingForm(!showBookingForm);
       setShowPnrStatus(false);
@@ -32,11 +33,6 @@ const BookingTypeTabs = ({ activeTab, onTabChange }) => {
       setShowLiveTrain(!showLiveTrain);
       setShowBookingForm(false);
       setShowPnrStatus(false);
-    } else {
-      onTabChange(tabId);
-      setShowBookingForm(false);
-      setShowPnrStatus(false);
-      setShowLiveTrain(false);
     }
   };
 

@@ -2,7 +2,7 @@ import supabase from './supabaseClient';
 
 /**
  * Check if the connection to Supabase is working properly
- * @returns {Promise<Object>} Result of the connection test with success flag and details
+ * @returns {Promise<ConnectionResult>} Result of the connection test with success flag and details
  */
 export const checkSupabaseConnection = async () => {
   const results = {
@@ -31,10 +31,9 @@ export const checkSupabaseConnection = async () => {
 
     // Test 3: Try to list tables to verify database access
     const { data: tablesData, error: tablesError } = await supabase
-      .from('pg_catalog.pg_tables')
-      .select('tablename')
-      .eq('schemaname', 'public')
-      .limit(5);
+      .from('profiles')
+      .select('id')
+      .limit(1);
 
     if (tablesError) {
       results.details.listTables = 'Failed';
@@ -44,7 +43,7 @@ export const checkSupabaseConnection = async () => {
       results.details.basicConnectivity = 'Success (limited permissions)';
     } else {
       results.details.listTables = 'Success';
-      results.details.tables = tablesData ? tablesData.map(t => t.tablename).join(', ') : 'None found';
+      results.details.tables = tablesData ? 'Profiles table accessible' : 'None found';
       results.details.basicConnectivity = 'Success';
     }
 

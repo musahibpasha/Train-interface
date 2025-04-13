@@ -2,6 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Fix text size adjustment across browsers */
+html,
+:host {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
 /* Global styles with purple text and light grey background */
 :root {
   --purple-primary: #663399;  /* Main purple text color */
@@ -136,4 +143,20 @@ h1, h2, h3, h4, h5, h6 {
 
 .date-quick-btn:hover {
   background-color: #f0e6ff;
+}
+
+/* Marquee styles */
+.marquee-container {
+  width: 100%;
+  overflow: hidden;
+  background-color: #f0e6ff;
+  border-top: 1px solid #e5e7eb;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.marquee-text {
+  color: var(--purple-primary);
+  font-weight: 500;
+  padding: 0.5rem 0;
+  font-size: 0.95rem;
 }

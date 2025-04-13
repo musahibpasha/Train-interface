@@ -25,6 +25,9 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 const isSupabaseConfigured = !!(supabaseUrl && supabaseAnonKey);
 
+console.log(import.meta.env.VITE_SUPABASE_URL);
+console.log(import.meta.env.VITE_SUPABASE_ANON_KEY);
+
 // Fallback component when Supabase is not configured
 const SupabaseConfigurationScreen = () => {
   return (
@@ -254,7 +257,7 @@ const AppContent = () => {
 
         {showBookingForm && (
           <div className="mt-6 bg-white rounded-lg shadow-md p-6">
-            <BookingForm onClose={() => setShowBookingForm(false)} />
+            <BookingForm onClose={() => setShowBookingForm(false)} activeTab={activeTab} />
           </div>
         )}
 

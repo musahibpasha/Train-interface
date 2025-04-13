@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 
-const CustomDatePicker = ({ selectedDate, onDateSelect = () => {} }) => {
+const CustomDatePicker = ({ selectedDate, onDateSelect = (date) => {} }) => {
   const [isOpen, setIsOpen] = useState(false);
   const datePickerRef = useRef(null);
 

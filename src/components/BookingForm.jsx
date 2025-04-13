@@ -49,7 +49,7 @@ const availableOffers = [
   }
 ];
 
-const BookingForm = ({ onClose }) => {
+const BookingForm = ({ onClose, activeTab }) => {
   const { currentUser } = useAuth();
   const [trains, setTrains] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -184,6 +184,10 @@ const BookingForm = ({ onClose }) => {
     }
   };
 
+  if (activeTab === 'Live Train Status' || activeTab === 'PNR') {
+    return null;
+  }
+
   return (
     <div
       className="max-w-4xl mx-auto p-6 rounded-lg shadow-md"
@@ -207,7 +211,6 @@ const BookingForm = ({ onClose }) => {
         </div>
       ) : (
         <form onSubmit={handleSubmit}>
-          {/* ... (rest of the form remains the same) */}
           <div
             className="mb-6 p-4 rounded"
             style={{

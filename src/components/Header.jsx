@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import LoginModal from './LoginModal';
 import MyBookings from './MyBookings';
 import AvailableTrains from './AvailableTrains'; // Import the new component
+import PromoMarquee from './PromoMarquee';
 
 const Header = () => {
   const { currentUser, logout } = useAuth();
@@ -128,6 +129,9 @@ const Header = () => {
           </div>
         </div>
       </div>
+
+      {/* Add the PromoMarquee component */}
+      <PromoMarquee />
 
       {/* Available Trains */}
       {/* {!showBookingsPage && <AvailableTrains />} */}

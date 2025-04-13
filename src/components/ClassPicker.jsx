@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-const ClassPicker = ({ selectedClass, onClassSelect }) => {
+const ClassPicker = ({ selectedClass, onClassSelect, label }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const classes = [
@@ -15,11 +15,11 @@ const ClassPicker = ({ selectedClass, onClassSelect }) => {
 
   return (
     <div className="relative">
+      {label && <div className="text-sm text-gray-500">{label}</div>}
       <div
         className="cursor-pointer"
         onClick={() => setIsOpen(!isOpen)}
       >
-        <div className="text-sm text-gray-500">Class</div>
         <div className="text-3xl font-bold text-gray-900">{selectedClass?.name || 'ALL'}</div>
         <div className="text-sm text-gray-600">{selectedClass?.description || 'All Class'}</div>
       </div>
