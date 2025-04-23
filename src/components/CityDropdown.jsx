@@ -19,21 +19,27 @@ const CityDropdown = ({
   const [inputValue, setInputValue] = useState(value || "");
   const [isOpen, setIsOpen] = useState(false);
   const [filteredCities, setFilteredCities] = useState([]);
+  const [citiesList, setCitiesList] = useState(cities);
   const dropdownRef = useRef(null);
 
-  // Update filtered cities when input changes
+  // Fetch stations from our new backend endpoint
   useEffect(() => {
-    if (inputValue.trim() === "") {
-      setFilteredCities(cities.filter(city => city !== excludeCity));
-    } else {
-      const filtered = cities.filter(
-        city =>
-          city.toLowerCase().includes(inputValue.toLowerCase()) &&
-          city !== excludeCity
-      );
-      setFilteredCities(filtered);
-    }
-  }, [inputValue, cities, excludeCity]);
+    fetch("/api/stations")
+      .then(res => res.json())
+      .then(data => setCitiesList(data || []))      // ← fixed setter name
+      .catch(err => console.error("Error fetching stations:", err));
+  }, []);
+
+  // Update filtered cities when inputValue, citiesList or excludeCity changes
+  useEffect(() => {
+    const base = citiesList.filter(city => city !== excludeCity);
+    const filtered = inputValue.trim() === ""
+      ? base
+      : base.filter(city =>
+          city.toLowerCase().includes(inputValue.toLowerCase())
+        );
+    setFilteredCities(filtered);
+  }, [inputValue, citiesList, excludeCity]);
 
   // Update input value when value prop changes
   useEffect(() => {
@@ -86,7 +92,11 @@ const CityDropdown = ({
             }}
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0
+00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414
+1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414
+10l1.293-1.293a1 1 0 00-1.414-1.414L10
+8.586 8.707 7.293z" clipRule="evenodd" />
             </svg>
           </button>
         )}

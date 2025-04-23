@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import supabase from '../utils/supabaseClient';
-import { GoogleMap, Marker, useLoadScript } from '@react-google-maps/api';
+import { GoogleMap, Marker, Polyline, useLoadScript } from '@react-google-maps/api';
 
 const mapContainerStyle = {
   width: '100%',
   height: '400px'
 };
 
-const LiveTrainStatus = ({ showLiveStatus, location, coordinates, fetchLocation }) => {
+const LiveTrainStatus = ({ showLiveStatus, location, coordinates, fetchLocation, trainPath }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [myBookings, setMyBookings] = useState([]);
@@ -25,16 +24,8 @@ const LiveTrainStatus = ({ showLiveStatus, location, coordinates, fetchLocation 
       setError(null);
 
       try {
-        const { data: { user }, error: userError } = await supabase.auth.getUser();
-        if (userError || !user) throw new Error('Please log in to view your bookings.');
-
-        const { data, error: bookingsError } = await supabase
-          .from('bookings')
-          .select('*')
-          .eq('user_id', user.id);
-
-        if (bookingsError) throw bookingsError;
-
+        const res  = await fetch(`/api/bookings?userId=${user.id}`);
+        const data = await res.json();
         setMyBookings(data || []);
       } catch (err) {
         console.error('Error fetching bookings:', err);
@@ -121,6 +112,16 @@ const LiveTrainStatus = ({ showLiveStatus, location, coordinates, fetchLocation 
               zoom={6}
             >
               {coordinates && <Marker position={coordinates} />}
+              {trainPath && trainPath.length > 0 && (
+                <Polyline
+                  path={trainPath}
+                  options={{
+                    strokeColor: '#FF0000',
+                    strokeOpacity: 0.8,
+                    strokeWeight: 4
+                  }}
+                />
+              )}
             </GoogleMap>
           </div>
         </>

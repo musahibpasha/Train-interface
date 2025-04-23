@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import supabase from '../utils/supabaseClient'; // Ensure you have a Supabase client set up
 
 const AvailableTrains = () => {
   const [trains, setTrains] = useState([]);
@@ -10,12 +9,8 @@ const AvailableTrains = () => {
     const fetchTrains = async () => {
       try {
         setLoading(true);
-        const { data, error } = await supabase
-          .from('trains') // Replace 'trains' with your actual table name
-          .select('*')
-          .order('departure_time', { ascending: true });
-
-        if (error) throw error;
+        const res = await fetch('/api/trains');
+        const data = await res.json();
         setTrains(data || []);
       } catch (err) {
         console.error('Error fetching trains:', err);

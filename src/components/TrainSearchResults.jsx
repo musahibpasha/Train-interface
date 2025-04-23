@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import supabase from '../utils/supabaseClient';
 import BookingForm from './BookingForm';
 
 const TrainSearchResults = ({ fromCity, toCity, date, seatClass, onBookTrain }) => {
@@ -17,41 +16,21 @@ const TrainSearchResults = ({ fromCity, toCity, date, seatClass, onBookTrain }) 
         setLoading(true);
         setError('');
 
-        let query = supabase
-          .from('trains')
-          .select('*');
+        // build query-string
+        const params = new URLSearchParams();
+        if (fromCity)    params.append('fromCity', fromCity);
+        if (toCity)      params.append('toCity',   toCity);
+        if (seatClass && seatClass !== 'ALL') 
+                        params.append('classType', seatClass);
 
-        // Add filters if provided
-        if (fromCity) {
-          query = query.ilike('from_station', `%${fromCity}%`);
-        }
-
-        if (toCity) {
-          query = query.ilike('to_station', `%${toCity}%`);
-        }
-
-        if (seatClass && seatClass !== 'ALL') {
-          query = query.eq('class_type', seatClass);
-        }
-
-        // Date filtering would require more complex logic with departure_time
-
-        // Order by departure time
-        query = query.order('departure_time', { ascending: true });
-
-        const { data, error: fetchError } = await query;
-
-        if (fetchError) {
-          throw fetchError;
-        }
-
-        // Filter out trains with no available seats
-        const availableTrains = data.filter(train => train.available_seats > 0);
-
-        setTrains(availableTrains || []);
+        // fetch from backend
+        const res  = await fetch(`/api/trains?${params}`);
+        const data = await res.json();
+        const availableTrains = data.filter(t => t.available_seats > 0);
+        setTrains(availableTrains);
       } catch (err) {
         console.error('Error fetching trains:', err);
-        setError(' available trains. Please try again.');
+        setError('Failed to load available trains. Please try again.');
       } finally {
         setLoading(false);
       }
@@ -89,7 +68,6 @@ const TrainSearchResults = ({ fromCity, toCity, date, seatClass, onBookTrain }) 
     const durationMs = endTime - startTime;
     const hours = Math.floor(durationMs / (1000 * 60 * 60));
     const minutes = Math.floor((durationMs % (1000 * 60 * 60)) / (1000 * 60));
-
     return `${hours}h ${minutes}m`;
   };
 
@@ -102,7 +80,10 @@ const TrainSearchResults = ({ fromCity, toCity, date, seatClass, onBookTrain }) 
             className="mb-4 flex items-center text-gray-600 hover:text-gray-900"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z" clipRule="evenodd" />
+              <path fillRule="evenodd" d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0
+010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1
+1 0 110 2H7.414l2.293 2.293a1 1 0
+010 1.414z" clipRule="evenodd" />
             </svg>
             Back to train list
           </button>
@@ -120,7 +101,6 @@ const TrainSearchResults = ({ fromCity, toCity, date, seatClass, onBookTrain }) 
               )}
             </h2>
           </div>
-
           <div className="p-4">
             {loading ? (
               <div className="flex justify-center items-center py-12">
@@ -132,8 +112,12 @@ const TrainSearchResults = ({ fromCity, toCity, date, seatClass, onBookTrain }) 
               </div>
             ) : trains.length === 0 ? (
               <div className="text-center py-8">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mx-auto text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mx-auto text-gray-300" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938
+4h13.856c1.54 0 2.502-1.667
+1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464
+0L3.34 16c-.77 1.333.192 3
+1.732 3z" />
                 </svg>
                 <p className="mt-4 text-gray-500">No trains found matching your criteria</p>
                 <p className="text-gray-400 text-sm mt-2">
@@ -187,7 +171,6 @@ const TrainSearchResults = ({ fromCity, toCity, date, seatClass, onBookTrain }) 
         </>
       )}
     </div>
-  );
-};
-
+);
+}
 export default TrainSearchResults;

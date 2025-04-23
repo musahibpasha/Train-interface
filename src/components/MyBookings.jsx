@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import supabase from '../utils/supabaseClient';
 
 const MyBookings = () => {
   const [bookings, setBookings] = useState([]);
@@ -19,23 +18,8 @@ const MyBookings = () => {
   const fetchBookings = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('bookings')
-        .select(`
-          *,
-          trains (
-            name,
-            from_station,
-            to_station,
-            departure_time,
-            arrival_time,
-            class_type
-          )
-        `)
-        .eq('user_id', currentUser?.id)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
+      const res = await fetch(`/api/bookings?userId=${currentUser.id}`);
+      const data = await res.json();
       setBookings(data || []);
     } catch (err) {
       console.error('Error fetching bookings:', err);
@@ -47,11 +31,9 @@ const MyBookings = () => {
 
   const handleCancelBooking = async (bookingId) => {
     try {
-      const { error } = await supabase
-        .from('bookings')
-        .update({ status: 'cancelled' })
-        .eq('id', bookingId)
-        .eq('user_id', currentUser?.id);
+     const { error } = await fetch(`/api/bookings/${bookingId}`, {
+        method: 'DELETE'
+      });
 
       if (error) throw error;
       

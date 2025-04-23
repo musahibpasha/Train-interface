@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import supabase from '../utils/supabaseClient';
 import adaniImage from '../assests/adani one offers.jpg';
 import offersImage from '../assests/offers.jpg';
 import offers2Image from '../assests/offers2.jpeg';
@@ -74,14 +73,8 @@ const BookingForm = ({ onClose, activeTab }) => {
     const fetchTrains = async () => {
       try {
         setLoading(true);
-        const { data, error } = await supabase
-          .from('trains')
-          .select('*')
-          .order('departure_time', { ascending: true });
-
-        if (error) {
-          throw error;
-        }
+        const res = await fetch('/api/trains');
+        const data = await res.json();
         setTrains(data || []);
       } catch (err) {
         console.error('Error fetching trains:', err);
@@ -123,8 +116,9 @@ const BookingForm = ({ onClose, activeTab }) => {
     setError('');
 
     try {
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      if (userError || !user) {
+      const resUser = await fetch('http://localhost:5000/api/users/me');
+      const { user } = await resUser.json();
+      if (!user) {
         throw new Error('Please login to make a booking');
       }
 
@@ -161,14 +155,13 @@ const BookingForm = ({ onClose, activeTab }) => {
         seats: `${formData.seat_count} (${selectedTrainDetails.class_type})`
       };
 
-      const { data, error: insertError } = await supabase
-        .from('bookings')
-        .insert([booking])
-        .select()
-        .single();
+      const resp = await fetch('http://localhost:5000/api/bookings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(booking)
+      });
 
-      if (insertError) {
-        console.error('Booking error:', insertError);
+      if (!resp.ok) {
         throw new Error('Failed to create booking. Please try again.');
       }
 

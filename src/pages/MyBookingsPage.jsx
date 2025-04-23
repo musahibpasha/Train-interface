@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
-import LoginModal from './LoginModal';
-import MyBookingsPage from '../pages/MyBookingsPage';
+import LoginModal from '../components/LoginModal';
+import MyBookings    from '../components/MyBookings';
 
 const Header = () => {
   const { currentUser, logout } = useAuth();
@@ -129,7 +129,7 @@ const Header = () => {
       </div>
 
       {/* My Bookings Page */}
-      {showBookingsPage && <MyBookingsPage />}
+      {showBookingsPage && <MyBookings />}
 
       {/* Login Modal */}
       <LoginModal
