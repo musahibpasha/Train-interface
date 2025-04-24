@@ -20,61 +20,54 @@ const BookingTypeTabs = ({ activeTab: initialActiveTab, onTabChange }) => {
 
   const tabs = [
     { id: 'book', label: 'Book Train Tickets' },
-    { id: 'pnr', label: 'Check PNR Status' },
+    { id: 'pnr',  label: 'Check PNR Status' },
     { id: 'live', label: 'Live Train Status' }
   ];
 
   const fetchLocation = async (fromCity, toCity) => {
-    try {
-      const response = await fetch(`/api/getLiveLocation?from=${fromCity}&to=${toCity}`);
-      
-      if (!response.ok) {
-        // Reject the promise for server-side errors
-        throw new Error(`Server error: ${response.status} - ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      console.log('Live location data:', data); // Debugging API response
-
-      if (data.success) {
-        const { lat, lng } = data;
-        setCoordinates({ lat, lng });
-
-        // Load Google Maps API dynamically
-        const loader = new Loader({
-          apiKey: "AIzaSyB7ZjmQo0re78EECTh9gyxdFVbph8XxEZs", // Replace with your actual API key
-          version: "weekly",
-        });
-
-        await loader.load();
-
-        // Use the Geocoder service from the Maps API
-        const geocoder = new google.maps.Geocoder();
-        geocoder.geocode({ location: { lat, lng } }, (results, status) => {
-          if (status === "OK" && results.length > 0) {
-            setLocation(results[0].formatted_address); // Set the formatted address
-          } else {
-            console.error("Geocoding API Error:", status);
-            setLocation("Unknown location");
-          }
-        });
-
-        if (data.path) {
-          setTrainPath(data.path); // Assuming `data.path` is an array of coordinates
-        }
-      } else {
-        console.error('Error in API response:', data.message);
-      }
-    } catch (error) {
-      console.error('Error fetching live location:', error);
-
-      // Handle specific error cases
-      if (error.message.includes('Server error')) {
-        console.error('Server returned an error:', error.message);
-      } else {
-        console.error('Network error or unexpected issue:', error.message);
-      }
+    if (!isLoaded) {
+      console.error("Google Maps API not loaded yet");
+      return;
     }
+
+    const loaderInstance = new Loader({
+      apiKey: "AIzaSyB7ZjmQo0re78EECTh9gyxdFVbph8XxEZs",
+      version: "weekly"
+    });
+    await loaderInstance.load();
+
+    const directionsService = new window.google.maps.DirectionsService();
+    const geocoder         = new window.google.maps.Geocoder();
+
+    directionsService.route(
+      {
+        origin:      fromCity,
+        destination: toCity,
+        travelMode:  window.google.maps.TravelMode.TRANSIT
+      },
+      (result, status) => {
+        if (status === window.google.maps.DirectionsStatus.OK && result.routes.length) {
+          const path = result.routes[0].overview_path.map(p => ({
+            lat: p.lat(),
+            lng: p.lng()
+          }));
+          setTrainPath(path);
+
+          const mid = path[Math.floor(path.length / 2)];
+          setCoordinates(mid);
+
+          geocoder.geocode({ location: mid }, (res, stat) => {
+            if (stat === "OK" && res.length > 0) {
+              setLocation(res[0].formatted_address);
+            } else {
+              setLocation("Unknown location");
+            }
+          });
+        } else {
+          console.error("Directions request failed: ", status);
+        }
+      }
+    );
   };
 
   const handleTabClick = (tabId) => {
@@ -84,20 +77,26 @@ const BookingTypeTabs = ({ activeTab: initialActiveTab, onTabChange }) => {
 
   const renderContent = () => {
     if (activeTab === 'book') {
-      return <BookingForm onClose={() => handleTabClick(null)} />;
+      // Do not render the form here; it will appear via your "Book Now" button
+      return null;
     }
 
     if (activeTab === 'pnr') {
-      return <div className="p-4 bg-yellow-100 text-yellow-800 rounded">PNR Status Feature Coming Soon!</div>;
+      return (
+        <div className="p-4 bg-yellow-100 text-yellow-800 rounded">
+          PNR Status Feature Coming Soon!
+        </div>
+      );
     }
 
     if (activeTab === 'live') {
       return (
         <LiveTrainStatus
-          showLiveStatus={activeTab === 'live'}
+          showLiveStatus={true}
           location={location}
           coordinates={coordinates}
           fetchLocation={fetchLocation}
+          trainPath={trainPath}
         />
       );
     }
@@ -108,7 +107,7 @@ const BookingTypeTabs = ({ activeTab: initialActiveTab, onTabChange }) => {
   return (
     <div className="space-y-6">
       <div className="flex space-x-6">
-        {tabs.map((tab) => (
+        {tabs.map(tab => (
           <div key={tab.id} className="flex items-center">
             <input
               type="radio"

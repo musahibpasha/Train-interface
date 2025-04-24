@@ -26,7 +26,7 @@ const isSupabaseConfigured = !!(supabaseUrl && supabaseAnonKey);
 console.log(supabaseUrl);
 console.log(supabaseAnonKey);
 
-// Fallback screen when Supabase isn’t set up
+// Fallback screen when Supabase isn't set up
 const SupabaseConfigurationScreen = () => (
   <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-4">
     <div className="bg-white rounded-lg shadow-md p-8 max-w-lg w-full">
@@ -135,7 +135,7 @@ const AppContent = () => {
           <h1 className="text-white text-4xl font-bold">Welcome to Train Booking</h1>
         </div>
       </div>
-
+      image.png
       
 
       {/* Connection and setup warnings */}
@@ -180,15 +180,41 @@ const AppContent = () => {
       <div className="mx-auto max-w-7xl px-4 py-6">
         <div className="bg-white rounded-lg shadow-md p-6">
           <BookingTypeTabs activeTab={activeTab} onTabChange={handleTabChange} />
-          <div className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-            <CityDropdown label="From" cities={cities} value={fromCity} onChange={setFromCity} placeholder="Enter origin city" excludeCity={toCity} />
-            <CityDropdown label="To"   cities={cities} value={toCity}   onChange={setToCity}   placeholder="Enter destination city" excludeCity={fromCity} />
-            <DatePicker selectedDate={travelDate} onDateSelect={setTravelDate} />
-            <ClassPicker label="Class" selectedClass={seatClass} onClassSelect={handleClassSelect} />
-          </div>
-          <div className="mt-6">
-            <SearchButton onClick={handleSearch} />
-          </div>
+
+          {activeTab === 'book' && (
+            <>
+              <div className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+                <CityDropdown
+                  label="From"
+                  cities={cities}
+                  value={fromCity}
+                  onChange={setFromCity}
+                  placeholder="Enter origin city"
+                  excludeCity={toCity}
+                />
+                <CityDropdown
+                  label="To"
+                  cities={cities}
+                  value={toCity}
+                  onChange={setToCity}
+                  placeholder="Enter destination city"
+                  excludeCity={fromCity}
+                />
+                <DatePicker
+                  selectedDate={travelDate}
+                  onDateSelect={setTravelDate}
+                />
+                <ClassPicker
+                  label="Class"
+                  selectedClass={seatClass}
+                  onClassSelect={handleClassSelect}
+                />
+              </div>
+              <div className="mt-6">
+                <SearchButton onClick={handleSearch} />
+              </div>
+            </>
+          )}
         </div>
 
         {showResults && (
@@ -203,14 +229,19 @@ const AppContent = () => {
 
         {showBookingForm && (
           <div className="mt-6 bg-white rounded-lg shadow-md p-6">
-            <BookingForm onClose={() => setShowBookingForm(false)} activeTab={activeTab} />
+            <BookingForm
+              onClose={() => setShowBookingForm(false)}
+              activeTab={activeTab}
+            />
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-          <LiveTrainStatus />
-          <AvailableTrains />
-        </div>
+        {activeTab === 'live' && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+            <LiveTrainStatus showLiveStatus />
+            <AvailableTrains />
+          </div>
+        )}
 
         <OffersSection />
       </div>

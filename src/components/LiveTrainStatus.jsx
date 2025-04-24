@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { GoogleMap, Marker, Polyline, useLoadScript } from '@react-google-maps/api';
+import { useAuth } from '../context/AuthContext';
 
 const mapContainerStyle = {
   width: '100%',
@@ -7,10 +8,13 @@ const mapContainerStyle = {
 };
 
 const LiveTrainStatus = ({ showLiveStatus, location, coordinates, fetchLocation, trainPath }) => {
+  const { currentUser } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [myBookings, setMyBookings] = useState([]);
   const [selectedBooking, setSelectedBooking] = useState('');
+  const [pickupCoords, setPickupCoords] = useState(null);
+  const [dropCoords, setDropCoords] = useState(null);
 
   const { isLoaded } = useLoadScript({
     googleMapsApiKey: 'AIzaSyB7ZjmQo0re78EECTh9gyxdFVbph8XxEZs'
@@ -19,12 +23,17 @@ const LiveTrainStatus = ({ showLiveStatus, location, coordinates, fetchLocation,
   useEffect(() => {
     if (!showLiveStatus) return;
 
+    if (!currentUser) {
+      setError('Please log in to view your bookings.');
+      return;
+    }
+
     const fetchBookings = async () => {
       setLoading(true);
       setError(null);
 
       try {
-        const res  = await fetch(`/api/bookings?userId=${user.id}`);
+        const res  = await fetch(`/api/bookings?userId=${currentUser.id}`);
         const data = await res.json();
         setMyBookings(data || []);
       } catch (err) {
@@ -36,16 +45,23 @@ const LiveTrainStatus = ({ showLiveStatus, location, coordinates, fetchLocation,
     };
 
     fetchBookings();
-  }, [showLiveStatus]);
+  }, [showLiveStatus, currentUser]);
 
   useEffect(() => {
-    if (selectedBooking && fetchLocation) {
+    if (isLoaded && selectedBooking && fetchLocation) {
       const booking = myBookings.find((b) => b.id === selectedBooking);
       if (booking) {
         fetchLocation(booking.from_city, booking.to_city);
+        const geocoder = new window.google.maps.Geocoder();
+        geocoder.geocode({ address: booking.from_city }, (res, st) => {
+          if (st === 'OK' && res[0]) setPickupCoords(res[0].geometry.location.toJSON());
+        });
+        geocoder.geocode({ address: booking.to_city }, (res, st) => {
+          if (st === 'OK' && res[0]) setDropCoords(res[0].geometry.location.toJSON());
+        });
       }
     }
-  }, [selectedBooking]);
+  }, [isLoaded, selectedBooking, fetchLocation, myBookings]);
 
   const handleBookingChange = (e) => {
     setSelectedBooking(e.target.value);
@@ -111,7 +127,9 @@ const LiveTrainStatus = ({ showLiveStatus, location, coordinates, fetchLocation,
               center={coordinates || { lat: 20.5937, lng: 78.9629 }} // Default to India center
               zoom={6}
             >
-              {coordinates && <Marker position={coordinates} />}
+              {pickupCoords && <Marker position={pickupCoords} label="P"/>}
+              {dropCoords   && <Marker position={dropCoords}   label="D"/>}
+              {coordinates  && <Marker position={coordinates}/>}
               {trainPath && trainPath.length > 0 && (
                 <Polyline
                   path={trainPath}
