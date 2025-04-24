@@ -17,7 +17,7 @@ const LiveTrainStatus = ({ showLiveStatus, location, coordinates, fetchLocation,
   const [dropCoords, setDropCoords] = useState(null);
 
   const { isLoaded } = useLoadScript({
-    googleMapsApiKey: 'AIzaSyB7ZjmQo0re78EECTh9gyxdFVbph8XxEZs'
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY
   });
 
   useEffect(() => {

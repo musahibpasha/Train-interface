@@ -11,7 +11,7 @@ const BookingTypeTabs = ({ activeTab: initialActiveTab, onTabChange }) => {
   const [trainPath, setTrainPath] = useState([]);
 
   const { isLoaded, loadError } = useLoadScript({
-    googleMapsApiKey: 'AIzaSyB7ZjmQo0re78EECTh9gyxdFVbph8XxEZs',
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
   });
 
   if (loadError) {
@@ -30,11 +30,11 @@ const BookingTypeTabs = ({ activeTab: initialActiveTab, onTabChange }) => {
       return;
     }
 
-    const loaderInstance = new Loader({
-      apiKey: "AIzaSyB7ZjmQo0re78EECTh9gyxdFVbph8XxEZs",
+    const loader = new Loader({
+      apiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
       version: "weekly"
     });
-    await loaderInstance.load();
+    await loader.load();
 
     const directionsService = new window.google.maps.DirectionsService();
     const geocoder         = new window.google.maps.Geocoder();
