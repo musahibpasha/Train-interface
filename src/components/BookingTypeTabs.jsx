@@ -3,6 +3,7 @@ import BookingForm from './BookingForm';
 import LiveTrainStatus from './LiveTrainStatus';
 import { Loader } from "@googlemaps/js-api-loader";
 import { useLoadScript } from "@react-google-maps/api";
+import BookingTrendsChart from './BookingTrendsChart';
 
 const BookingTypeTabs = ({ activeTab: initialActiveTab, onTabChange }) => {
   const [activeTab, setActiveTab] = useState(initialActiveTab || 'book');
@@ -21,7 +22,8 @@ const BookingTypeTabs = ({ activeTab: initialActiveTab, onTabChange }) => {
   const tabs = [
     { id: 'book', label: 'Book Train Tickets' },
     { id: 'pnr',  label: 'Check PNR Status' },
-    { id: 'live', label: 'Live Train Status' }
+    { id: 'live', label: 'Live Train Status' },
+    { id: 'charts', label: 'Charts' }
   ];
 
   const fetchLocation = async (fromCity, toCity) => {
@@ -99,6 +101,10 @@ const BookingTypeTabs = ({ activeTab: initialActiveTab, onTabChange }) => {
           trainPath={trainPath}
         />
       );
+    }
+
+    if (activeTab === 'charts') {
+      return <BookingTrendsChart />;
     }
 
     return null;

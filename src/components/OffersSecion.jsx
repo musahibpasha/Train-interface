@@ -50,42 +50,29 @@ const OffersSecion = ({ initialCount = 3 }) => {
     const [offersList] = useState(getRandomOffersLocal(initialCount));
 
     return (
-        <div style={{ padding: '20px' }}>
-            <h2>Offers Section</h2>
-            <div 
-                style={{ 
-                    display: 'grid', 
-                    gridTemplateColumns: 'repeat(3, 1fr)', 
-                    gap: '20px'
-                }}
-            >
-                {offersList.map((offer) => (
-                    <div 
-                        key={offer.id} 
-                        style={{
-                            border: '1px solid #ccc', 
-                            borderRadius: '8px', 
-                            overflow: 'hidden',
-                            display: 'flex',
-                            flexDirection: 'column'
-                        }}
+        <div className="py-10 px-4">
+            <h2 className="text-2xl md:text-3xl font-bold mb-8 text-purple-700 tracking-tight text-center animate-fade-in">Exclusive Offers For You</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+                {offersList.map((offer, idx) => (
+                    <div
+                        key={offer.id}
+                        className="bg-white rounded-xl shadow-lg overflow-hidden transform transition duration-300 hover:scale-105 hover:shadow-2xl animate-fade-in"
+                        style={{ animationDelay: `${idx * 120}ms` }}
                     >
-                        <img 
-                            src={offer.image} 
-                            alt={offer.title} 
-                            style={{
-                                width: '100%', 
-                                height: '150px', 
-                                objectFit: 'cover'
-                            }}
+                        <img
+                            src={offer.image}
+                            alt={offer.title}
+                            className="w-full h-40 object-cover"
                         />
-                        <div style={{ padding: '10px' }}>
-                            <h3>{offer.title}</h3>
-                            <p>{offer.description}</p>
-                            <p><strong>Discount:</strong> {offer.discountPercentage}%</p>
-                            <p><strong>Code:</strong> {offer.code}</p>
-                            <p><strong>Valid Until:</strong> {offer.validUntil}</p>
-                            <p><strong>Type:</strong> {offer.type}</p>
+                        <div className="p-5">
+                            <h3 className="text-lg font-semibold text-gray-800 mb-2">{offer.title || `Special Offer`}</h3>
+                            <p className="text-gray-600 mb-2">{offer.description}</p>
+                            <div className="flex flex-wrap gap-2 text-sm mb-2">
+                                <span className="bg-purple-100 text-purple-700 px-2 py-1 rounded font-medium">{offer.discountPercentage}% OFF</span>
+                                <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded font-medium">Code: {offer.code}</span>
+                                <span className="bg-green-100 text-green-700 px-2 py-1 rounded font-medium">Valid: {offer.validUntil}</span>
+                                <span className="bg-yellow-100 text-yellow-700 px-2 py-1 rounded font-medium capitalize">{offer.type}</span>
+                            </div>
                         </div>
                     </div>
                 ))}

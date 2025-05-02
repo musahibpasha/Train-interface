@@ -92,6 +92,153 @@ app.post('/api/bookings', async (req, res) => {
   res.status(201).json(data)
 })
 
+// Bookings per month (for charts)
+app.get('/api/booking-trends', async (_req, res) => {
+  const { data, error } = await supabase
+    .from('bookings')
+    .select('booking_date');
+  if (error) return res.status(500).json({ error: error.message });
+
+  // Group by month
+  const trends = {};
+  data.forEach(({ booking_date }) => {
+    const month = booking_date.slice(0, 7); // YYYY-MM
+    trends[month] = (trends[month] || 0) + 1;
+  });
+
+  // Convert to array sorted by month
+  const result = Object.entries(trends)
+    .map(([month, count]) => ({ month, count }))
+    .sort((a, b) => a.month.localeCompare(b.month));
+
+  res.json(result);
+});
+
+// Destination stats (hotels and bookings count for a city)
+app.get('/api/destination-stats', async (req, res) => {
+  const { city } = req.query;
+  if (!city) return res.status(400).json({ error: 'City parameter is required' });
+
+  // Count hotels in the city
+  const { data: hotels, error: hotelsError } = await supabase
+    .from('hotels')
+    .select('id')
+    .eq('city', city);
+  if (hotelsError) return res.status(500).json({ error: hotelsError.message });
+
+  const hotelIds = hotels.map(h => h.id);
+
+  // Count bookings for hotels in the city
+  let bookingsCount = 0;
+  if (hotelIds.length > 0) {
+    const { count, error: bookingsError } = await supabase
+      .from('bookings')
+      .select('id', { count: 'exact', head: true })
+      .in('hotel_id', hotelIds);
+    if (bookingsError) return res.status(500).json({ error: bookingsError.message });
+    bookingsCount = count;
+  }
+
+  res.json({
+    hotelsCount: hotels.length,
+    bookingsCount: bookingsCount
+  });
+});
+
+// GET hotel recommendations
+app.get('/api/hotel-recommendations', async (req, res) => {
+  const { limit = 5 } = req.query;
+  const { data, error } = await supabase
+    .from('hotels')
+    .select(`
+      *,
+      hotel_recommendations (
+        recommendation_score,
+        recommendation_reason
+      )
+    `)
+    .order('created_at', { ascending: false })
+    .limit(limit);
+
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(data);
+});
+
+// GET enhanced booking trends
+app.get('/api/enhanced-booking-trends', async (req, res) => {
+  const { period = 'month' } = req.query;
+  
+  const { data, error } = await supabase
+    .from('booking_trends')
+    .select('*')
+    .order('month', { ascending: true })
+    .limit(12);
+
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(data);
+});
+
+// GET hotels by city
+app.get('/api/hotels', async (req, res) => {
+  const { city, limit = 10 } = req.query;
+  let query = supabase
+    .from('hotels')
+    .select('*')
+    .order('rating', { ascending: false });
+
+  if (city) {
+    query = query.eq('city', city);
+  }
+
+  const { data, error } = await query.limit(limit);
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(data);
+});
+
+// POST enhanced booking
+app.post('/api/enhanced-bookings', async (req, res) => {
+  const booking = {
+    ...req.body,
+    created_at: new Date().toISOString()
+  };
+
+  const { data, error } = await supabase
+    .from('bookings')
+    .insert([booking])
+    .select();
+
+  if (error) return res.status(500).json({ error: error.message });
+  res.status(201).json(data);
+});
+
+// GET stations for a city (from stations table)
+app.get('/api/stations-by-city', async (req, res) => {
+  const { city } = req.query;
+  if (!city) return res.status(400).json({ error: 'City parameter is required' });
+
+  const { data, error } = await supabase
+    .from('stations')
+    .select('station_name')
+    .eq('city', city);
+
+  if (error) return res.status(500).json({ error: error.message });
+
+  res.json(data.map(s => s.station_name));
+});
+
+// GET all unique cities from stations table
+app.get('/api/cities', async (_req, res) => {
+  const { data, error } = await supabase
+    .from('stations')
+    .select('city', { distinct: true });
+
+  if (error) return res.status(500).json({ error: error.message });
+
+  // Extract unique city names
+  const cities = Array.from(new Set(data.map(row => row.city))).sort();
+  res.json(cities);
+});
+
 // ─── ADD THIS HEALTH-CHECK ENDPOINT ─────────────────────────────────────────
 app.get('/', (_req, res) => {
   res.json({

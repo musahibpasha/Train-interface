@@ -45,7 +45,8 @@ const AvailableTrains = () => {
             >
               <h2 className="text-lg font-semibold">{train.name}</h2>
               <p className="text-sm text-gray-600">
-                From: {train.from_station} - To: {train.to_station}
+                From: {train.from_station}, {train.from_city} <br />
+                To: {train.to_station}, {train.to_city}
               </p>
               <p className="text-sm text-gray-600">
                 Departure: {train.departure_time}

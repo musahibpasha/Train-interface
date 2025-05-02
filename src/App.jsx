@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Header from './components/Header';
-import CityDropdown from './components/CityDropdown';
 import DatePicker from './components/DatePicker';
 import ClassPicker from './components/ClassPicker';
 import SearchButton from './components/SearchButton';
@@ -13,10 +12,12 @@ import BookingForm from './components/BookingForm';
 import checkSupabaseConnection from './utils/checkConnection';
 import AvailableTrains from './components/AvailableTrains';
 import LiveTrainStatus from './components/LiveTrainStatus';
+import HotelRecommendations from './components/HotelRecommendations';
 
 // New imports for routing and pages
 import MyBookingsPage from './pages/MyBookingsPage';
 import MyProfilePage from './pages/MyProfilePage';
+import Home from './pages/Home';
 
 // Supabase config flags
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -50,11 +51,14 @@ const SupabaseConfigurationScreen = () => (
   </div>
 );
 
-// Main homepage content extracted
 const AppContent = () => {
   const { currentUser } = useAuth();
   const [fromCity, setFromCity] = useState('');
   const [toCity, setToCity] = useState('');
+  const [fromStations, setFromStations] = useState([]);
+  const [toStations, setToStations] = useState([]);
+  const [fromStation, setFromStation] = useState('');
+  const [toStation, setToStation] = useState('');
   const [travelDate, setTravelDate] = useState(new Date());
   const [seatClass, setSeatClass] = useState({ id: 'all', name: 'ALL', description: 'All Class' });
   const [connectionStatus, setConnectionStatus] = useState(null);
@@ -63,6 +67,37 @@ const AppContent = () => {
   const [showResults, setShowResults] = useState(false);
   const [showBookingForm, setShowBookingForm] = useState(false);
   const [activeTab, setActiveTab] = useState('book');
+  const [cityList, setCityList] = useState([]);
+
+  useEffect(() => {
+    fetch('/api/cities')
+      .then(res => res.json())
+      .then(data => setCityList(Array.isArray(data) ? data : []));
+  }, []);
+
+  useEffect(() => {
+    if (fromCity) {
+      fetch(`/api/stations-by-city?city=${encodeURIComponent(fromCity)}`)
+        .then(res => res.json())
+        .then(data => setFromStations(Array.isArray(data) ? data : []))
+        .catch(() => setFromStations([]));
+    } else {
+      setFromStations([]);
+      setFromStation('');
+    }
+  }, [fromCity]);
+
+  useEffect(() => {
+    if (toCity) {
+      fetch(`/api/stations-by-city?city=${encodeURIComponent(toCity)}`)
+        .then(res => res.json())
+        .then(data => setToStations(Array.isArray(data) ? data : []))
+        .catch(() => setToStations([]));
+    } else {
+      setToStations([]);
+      setToStation('');
+    }
+  }, [toCity]);
 
   useEffect(() => {
     const verifyConnection = async () => {
@@ -92,8 +127,8 @@ const AppContent = () => {
   };
 
   const handleSearch = () => {
-    if (!fromCity && !toCity) {
-      alert("Please select at least origin or destination city");
+    if (!fromStation && !toStation) {
+      alert("Please select at least origin or destination station");
       return;
     }
     setShowResults(true);
@@ -118,11 +153,12 @@ const AppContent = () => {
     setSeatClass(classOption);
   };
 
-  const cities = [
-    'Delhi','Mumbai','Chennai','Kolkata','Bangalore',
-    'Hyderabad','Ahmedabad','Pune','Jaipur','Patna',
-    'Howrah','New Delhi'
-  ];
+  const uniqueFromStations = Array.isArray(fromStations)
+    ? Array.from(new Set(fromStations))
+    : [];
+  const uniqueToStations = Array.isArray(toStations)
+    ? Array.from(new Set(toStations))
+    : [];
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -183,23 +219,63 @@ const AppContent = () => {
 
           {activeTab === 'book' && (
             <>
-              <div className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-                <CityDropdown
-                  label="From"
-                  cities={cities}
-                  value={fromCity}
-                  onChange={setFromCity}
-                  placeholder="Enter origin city"
-                  excludeCity={toCity}
-                />
-                <CityDropdown
-                  label="To"
-                  cities={cities}
-                  value={toCity}
-                  onChange={setToCity}
-                  placeholder="Enter destination city"
-                  excludeCity={fromCity}
-                />
+              <div className="mt-6 grid grid-cols-1 md:grid-cols-5 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">From City</label>
+                  <select
+                    className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    value={fromCity}
+                    onChange={e => setFromCity(e.target.value)}
+                  >
+                    <option value="">Select city</option>
+                    {cityList.map(city => (
+                      <option key={city} value={city}>{city}</option>
+                    ))}
+                  </select>
+                  {fromCity && (
+                    <>
+                      <label className="block text-xs font-medium text-gray-500 mt-2">From Station</label>
+                      <select
+                        className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        value={fromStation}
+                        onChange={e => setFromStation(e.target.value)}
+                      >
+                        <option value="">Select station</option>
+                        {uniqueFromStations.map(station => (
+                          <option key={station} value={station}>{station}</option>
+                        ))}
+                      </select>
+                    </>
+                  )}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">To City</label>
+                  <select
+                    className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    value={toCity}
+                    onChange={e => setToCity(e.target.value)}
+                  >
+                    <option value="">Select city</option>
+                    {cityList.map(city => (
+                      <option key={city} value={city}>{city}</option>
+                    ))}
+                  </select>
+                  {toCity && (
+                    <>
+                      <label className="block text-xs font-medium text-gray-500 mt-2">To Station</label>
+                      <select
+                        className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        value={toStation}
+                        onChange={e => setToStation(e.target.value)}
+                      >
+                        <option value="">Select station</option>
+                        {uniqueToStations.map(station => (
+                          <option key={station} value={station}>{station}</option>
+                        ))}
+                      </select>
+                    </>
+                  )}
+                </div>
                 <DatePicker
                   selectedDate={travelDate}
                   onDateSelect={setTravelDate}
@@ -219,8 +295,8 @@ const AppContent = () => {
 
         {showResults && (
           <TrainSearchResults
-            fromCity={fromCity}
-            toCity={toCity}
+            fromStation={fromStation}
+            toStation={toStation}
             date={travelDate}
             seatClass={seatClass.name}
             onBookTrain={handleShowBookingForm}
@@ -232,17 +308,22 @@ const AppContent = () => {
             <BookingForm
               onClose={() => setShowBookingForm(false)}
               activeTab={activeTab}
+              fromStation={fromStation}
+              toStation={toStation}
             />
           </div>
         )}
 
         {activeTab === 'live' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+          <div className="mt-6">
             <LiveTrainStatus showLiveStatus />
-            <AvailableTrains />
           </div>
         )}
 
+        {/* Hotel Recommendations section */}
+        <HotelRecommendations />
+
+        {/* Offers section */}
         <OffersSection />
       </div>
     </div>
@@ -262,6 +343,7 @@ const App = () => {
         <Route path="/"           element={<AppContent />} />
         <Route path="/mybookings" element={<MyBookingsPage />} />
         <Route path="/myprofiles" element={<MyProfilePage />} />
+        <Route path="/stats"      element={<Home />} />
         <Route path="*"           element={<div>Page not found</div>} />
       </Routes>
     </AuthProvider>

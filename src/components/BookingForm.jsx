@@ -8,6 +8,7 @@ import { Tag } from 'lucide-react';
 import { Button } from './ui/Button'; // Assuming you have Button component
 import CityDropdown from './CityDropdown';
 import DatePicker from './DatePicker';
+import supabase from '../utils/supabaseClient';
 
 const cities = [
   'Delhi', 'Mumbai', 'Chennai', 'Kolkata', 'Bangalore',
@@ -67,7 +68,15 @@ const BookingForm = ({ onClose, activeTab }) => {
     passenger_phone: '',
     passenger_address: '',
     class_type: 'ALL',
+    hotel_id: '',
+    booking_type: 'standard',
+    payment_status: 'pending',
+    total_amount: 0
   });
+  const [formErrors, setFormErrors] = useState({});
+  const [fromStation, setFromStation] = useState('');
+  const [toStation, setToStation] = useState('');
+  const [stations, setStations] = useState([]);
 
   useEffect(() => {
     const fetchTrains = async () => {
@@ -85,6 +94,13 @@ const BookingForm = ({ onClose, activeTab }) => {
     };
 
     fetchTrains();
+  }, []);
+
+  useEffect(() => {
+    fetch('/api/stations')
+      .then(res => res.json())
+      .then(data => setStations(data))
+      .catch(() => setStations([]));
   }, []);
 
   const handleChange = (e) => {
@@ -110,70 +126,47 @@ const BookingForm = ({ onClose, activeTab }) => {
     setAppliedOffer(offer);
   };
 
+  const validateForm = () => {
+    const errors = {};
+    
+    if (!formData.hotel_id && formData.includeHotel) {
+      errors.hotel_id = 'Please select a hotel';
+    }
+    
+    if (!formData.booking_type) {
+      errors.booking_type = 'Please select a booking type';
+    }
+    
+    return errors;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    setError('');
-
-    try {
-      const resUser = await fetch('http://localhost:5000/api/users/me');
-      const { user } = await resUser.json();
-      if (!user) {
-        throw new Error('Please login to make a booking');
+    const errors = validateForm();
+    
+    if (Object.keys(errors).length === 0) {
+      setLoading(true);
+      try {
+        const response = await fetch('http://localhost:5000/api/enhanced-bookings', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(formData),
+        });
+        
+        if (!response.ok) throw new Error('Booking failed');
+        
+        const data = await response.json();
+        setSuccess(true);
+        // Reset form or redirect
+      } catch (error) {
+        setError(error.message);
+      } finally {
+        setLoading(false);
       }
-
-      const selectedTrainDetails = trains.find(t => t.id === formData.train_id);
-      if (!selectedTrainDetails) {
-        throw new Error('Selected train not found');
-      }
-
-      const pnrNumber = `PNR${Date.now().toString().slice(-10)}`;
-
-      const seatCount = parseInt(formData.seat_count);
-      const baseTotal = selectedTrainDetails.price * seatCount;
-      const discount = appliedOffer ? (appliedOffer.discountPercentage / 100) * baseTotal : 0;
-      const totalPrice = baseTotal - discount;
-
-      const booking = {
-        user_id: user.id,
-        train_id: formData.train_id,
-        from_city: fromCity,
-        to_city: toCity,
-        date: travelDate.toISOString().split('T')[0],
-        train: selectedTrainDetails.name,
-        train_number: selectedTrainDetails.train_number,
-        seat_count: seatCount,
-        status: 'confirmed',
-        pnr: pnrNumber,
-        fare: selectedTrainDetails.price,
-        total_price: totalPrice,
-        class_type: formData.class_type,
-        passenger_name: formData.passenger_name,
-        passenger_email: formData.passenger_email,
-        passenger_phone: formData.passenger_phone,
-        passenger_address: formData.passenger_address,
-        seats: `${formData.seat_count} (${selectedTrainDetails.class_type})`
-      };
-
-      const resp = await fetch('http://localhost:5000/api/bookings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(booking)
-      });
-
-      if (!resp.ok) {
-        throw new Error('Failed to create booking. Please try again.');
-      }
-
-      setSuccess(true);
-      if (onClose) {
-        setTimeout(onClose, 2000);
-      }
-    } catch (error) {
-      console.error('Error:', error);
-      setError(error.message);
-    } finally {
-      setLoading(false);
+    } else {
+      setFormErrors(errors);
     }
   };
 
@@ -203,7 +196,7 @@ const BookingForm = ({ onClose, activeTab }) => {
           <p>Your train ticket has been booked successfully. You can view it in the My Bookings section.</p>
         </div>
       ) : (
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div
             className="mb-6 p-4 rounded"
             style={{
@@ -213,30 +206,32 @@ const BookingForm = ({ onClose, activeTab }) => {
             }}
           >
             <div className="mb-4">
-              
-              <CityDropdown
-                label="From"
-                cities={cities}
-                value={fromCity}
-                onChange={setFromCity}
-                placeholder="Enter origin city"
-                excludeCity={toCity}
+              <label className="block text-sm font-medium text-gray-700 mb-1">From Station</label>
+              <select
                 className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                value={fromStation}
+                onChange={e => setFromStation(e.target.value)}
                 required
-              />
+              >
+                <option value="">Select station</option>
+                {stations.map(station => (
+                  <option key={station} value={station}>{station}</option>
+                ))}
+              </select>
             </div>
             <div className="mb-4">
-              
-              <CityDropdown
-                label="To"
-                cities={cities}
-                value={toCity}
-                onChange={setToCity}
-                placeholder="Enter destination city"
-                excludeCity={fromCity}
+              <label className="block text-sm font-medium text-gray-700 mb-1">To Station</label>
+              <select
                 className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                value={toStation}
+                onChange={e => setToStation(e.target.value)}
                 required
-              />
+              >
+                <option value="">Select station</option>
+                {stations.map(station => (
+                  <option key={station} value={station}>{station}</option>
+                ))}
+              </select>
             </div>
             <div className="mb-4">
               
@@ -273,11 +268,17 @@ const BookingForm = ({ onClose, activeTab }) => {
                 required
               >
                 <option value="">Select a train</option>
-                {trains.map(train => (
-                  <option key={train.id} value={train.id}>
-                    {train.name} - {train.from_station} to {train.to_station} - {new Date(train.departure_time).toLocaleString()} - ₹{train.price} ({train.available_seats} seats available)
-                  </option>
-                ))}
+                {trains
+                  .filter(train =>
+                    (!fromStation || train.from_station === fromStation) &&
+                    (!toStation || train.to_station === toStation) &&
+                    train.available_seats > 0
+                  )
+                  .map(train => (
+                    <option key={train.id} value={train.id}>
+                      {train.name} - {train.from_station} to {train.to_station} - {new Date(train.departure_time).toLocaleString()} - ₹{train.price} ({train.available_seats} seats available)
+                    </option>
+                  ))}
               </select>
             </div>
           </div>
@@ -448,6 +449,70 @@ const BookingForm = ({ onClose, activeTab }) => {
               })()}
             </div>
           )}
+
+          {formData.includeHotel && (
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Hotel Booking Details</h3>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Select Hotel
+                </label>
+                <select
+                  name="hotel_id"
+                  value={formData.hotel_id}
+                  onChange={handleChange}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                >
+                  <option value="">Choose a hotel...</option>
+                  {hotels.map(hotel => (
+                    <option key={hotel.id} value={hotel.id}>
+                      {hotel.name} - ${hotel.price_per_night}/night
+                    </option>
+                  ))}
+                </select>
+                {formErrors.hotel_id && (
+                  <p className="mt-1 text-sm text-red-600">{formErrors.hotel_id}</p>
+                )}
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Booking Type
+                </label>
+                <select
+                  name="booking_type"
+                  value={formData.booking_type}
+                  onChange={handleChange}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                >
+                  <option value="standard">Standard</option>
+                  <option value="premium">Premium</option>
+                  <option value="luxury">Luxury</option>
+                </select>
+              </div>
+              
+              <div className="bg-gray-50 p-4 rounded-md">
+                <h4 className="text-sm font-medium text-gray-900">Booking Summary</h4>
+                <div className="mt-2 space-y-2">
+                  <p className="text-sm text-gray-600">
+                    Train Fare: ${formData.trainFare || 0}
+                  </p>
+                  {formData.hotel_id && (
+                    <p className="text-sm text-gray-600">
+                      Hotel Stay: ${formData.hotelFare || 0}
+                    </p>
+                  )}
+                  <div className="border-t border-gray-200 pt-2">
+                    <p className="text-sm font-medium text-gray-900">
+                      Total Amount: ${formData.total_amount}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="flex justify-end space-x-2">
             {onClose && (
               <Button
@@ -463,7 +528,7 @@ const BookingForm = ({ onClose, activeTab }) => {
               type="submit"
               disabled={loading}
             >
-              {loading ? 'Processing...' : 'Book Now'}
+              {loading ? 'Processing...' : 'Complete Booking'}
             </Button>
           </div>
         </form>
