@@ -10,12 +10,9 @@ const LoginModal = ({ isOpen, onClose, activeTab = 'login' }) => {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
-  const [connectionStatus, setConnectionStatus] = useState(null);
-  const [checkingConnection, setCheckingConnection] = useState(false);
+  const modalRef = useRef(null);
 
   const { login, signup, resendVerificationEmail } = useAuth();
-
-  const modalRef = useRef(null);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -49,13 +46,6 @@ const LoginModal = ({ isOpen, onClose, activeTab = 'login' }) => {
       document.removeEventListener('keydown', handleEscKey);
     };
   }, [isOpen, onClose]);
-
-  const handleTabChange = (newTab) => {
-    setTab(newTab);
-    setErrorMessage('');
-    setSuccessMessage('');
-    setConnectionStatus(null);
-  };
 
   const validateInputs = () => {
     setErrorMessage('');
@@ -91,7 +81,6 @@ const LoginModal = ({ isOpen, onClose, activeTab = 'login' }) => {
     setLoading(true);
     setErrorMessage('');
     setSuccessMessage('');
-    setConnectionStatus(null);
 
     try {
       const { success, error } = await login(email, password);
@@ -100,14 +89,10 @@ const LoginModal = ({ isOpen, onClose, activeTab = 'login' }) => {
         onClose();
       } else {
         setErrorMessage(error || 'Failed to login. Please check your credentials.');
-        if (error && (error.includes('network') || error.includes('connection') || error.includes('fetch'))) {
-          await handleCheckConnection();
-        }
       }
     } catch (error) {
       console.error('Login error:', error);
       setErrorMessage('Network error. Please try again later.');
-      await handleCheckConnection();
     } finally {
       setLoading(false);
     }
@@ -121,7 +106,6 @@ const LoginModal = ({ isOpen, onClose, activeTab = 'login' }) => {
     setLoading(true);
     setErrorMessage('');
     setSuccessMessage('');
-    setConnectionStatus(null);
 
     try {
       const { success, error } = await signup(email, password, name);
@@ -132,19 +116,11 @@ const LoginModal = ({ isOpen, onClose, activeTab = 'login' }) => {
           setTab('login');
         }, 2000);
       } else {
-        if (error && error.includes('already registered')) {
-          setErrorMessage('This email is already registered. Please log in instead.');
-        } else {
-          setErrorMessage(error || 'Failed to create account. Please try again.');
-          if (error && (error.includes('network') || error.includes('connection') || error.includes('fetch'))) {
-            await handleCheckConnection();
-          }
-        }
+        setErrorMessage(error || 'Failed to create account. Please try again.');
       }
     } catch (error) {
       console.error('Signup error:', error);
       setErrorMessage('Network error. Please try again later.');
-      await handleCheckConnection();
     } finally {
       setLoading(false);
     }
@@ -166,11 +142,7 @@ const LoginModal = ({ isOpen, onClose, activeTab = 'login' }) => {
       if (success) {
         setSuccessMessage(`Password reset email sent to ${email}. Please check your inbox.`);
       } else {
-        if (error && error.includes('rate limit')) {
-          setErrorMessage('Too many password reset emails sent. Please try again later.');
-        } else {
-          setErrorMessage(error || 'Failed to send password reset email.');
-        }
+        setErrorMessage(error || 'Failed to send password reset email.');
       }
     } catch (error) {
       console.error('Forgot password error:', error);
@@ -180,31 +152,13 @@ const LoginModal = ({ isOpen, onClose, activeTab = 'login' }) => {
     }
   };
 
-  const handleCheckConnection = async () => {
-    setCheckingConnection(true);
-
-    try {
-      const results = await checkSupabaseConnection();
-      setConnectionStatus(results);
-    } catch (error) {
-      console.error('Connection check error:', error);
-      setConnectionStatus({
-        success: false,
-        message: `Failed to run connection check: ${error.message}`,
-        errors: [error.message],
-      });
-    } finally {
-      setCheckingConnection(false);
-    }
-  };
-
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div
         ref={modalRef}
-        className="bg-white rounded-lg shadow-xl w-full max-w-md overflow-hidden"
+        className="bg-white rounded-lg shadow-xl w-full max-w-md overflow-hidden animate-fadeIn"
       >
         <div className="flex justify-between items-center border-b p-4">
           <h2 className="text-xl font-semibold">
@@ -312,7 +266,7 @@ const LoginModal = ({ isOpen, onClose, activeTab = 'login' }) => {
             <div className="mt-4 text-center">
               <button
                 type="button"
-                onClick={() => handleTabChange(tab === 'signup' ? 'login' : 'signup')}
+                onClick={() => setTab(tab === 'signup' ? 'login' : 'signup')}
                 className="text-purple-600 hover:text-purple-800 text-sm"
               >
                 {tab === 'signup' ? 'Already have an account? Login' : "Don't have an account? Sign Up"}

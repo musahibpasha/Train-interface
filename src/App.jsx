@@ -171,7 +171,7 @@ const AppContent = () => {
           <h1 className="text-white text-4xl font-bold">Welcome to Train Booking</h1>
         </div>
       </div>
-      image.png
+      
       
 
       {/* Connection and setup warnings */}

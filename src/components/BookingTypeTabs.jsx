@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import BookingForm from './BookingForm';
 import LiveTrainStatus from './LiveTrainStatus';
+import PNRStatus from './PNRStatus';
 import { Loader } from "@googlemaps/js-api-loader";
 import { useLoadScript } from "@react-google-maps/api";
 import BookingTrendsChart from './BookingTrendsChart';
@@ -84,11 +85,7 @@ const BookingTypeTabs = ({ activeTab: initialActiveTab, onTabChange }) => {
     }
 
     if (activeTab === 'pnr') {
-      return (
-        <div className="p-4 bg-yellow-100 text-yellow-800 rounded">
-          PNR Status Feature Coming Soon!
-        </div>
-      );
+      return <PNRStatus />;
     }
 
     if (activeTab === 'live') {
@@ -111,29 +108,28 @@ const BookingTypeTabs = ({ activeTab: initialActiveTab, onTabChange }) => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex space-x-6">
-        {tabs.map(tab => (
-          <div key={tab.id} className="flex items-center">
-            <input
-              type="radio"
-              id={tab.id}
-              name="bookingType"
-              checked={activeTab === tab.id}
-              onChange={() => handleTabClick(tab.id)}
-              className="h-4 w-4 text-purple-600 focus:ring-purple-500"
-            />
-            <label
-              htmlFor={tab.id}
-              className="ml-2 text-gray-800 hover:text-purple-700 cursor-pointer"
+    <div>
+      <div className="border-b border-gray-200">
+        <nav className="-mb-px flex space-x-8" aria-label="Tabs">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => handleTabClick(tab.id)}
+              className={`
+                whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm
+                ${activeTab === tab.id
+                  ? 'border-purple-500 text-purple-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}
+              `}
             >
               {tab.label}
-            </label>
-          </div>
-        ))}
+            </button>
+          ))}
+        </nav>
       </div>
-
-      {renderContent()}
+      <div className="mt-6">
+        {renderContent()}
+      </div>
     </div>
   );
 };

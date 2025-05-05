@@ -2,6 +2,7 @@ import express from 'express'
 import cors from 'cors'
 import dotenv from 'dotenv'
 import { createClient } from '@supabase/supabase-js'
+import fetch from 'node-fetch'
 
 dotenv.config()
 
@@ -237,6 +238,22 @@ app.get('/api/cities', async (_req, res) => {
   // Extract unique city names
   const cities = Array.from(new Set(data.map(row => row.city))).sort();
   res.json(cities);
+});
+
+// PNR Status endpoint
+app.get('/api/pnr-status/:pnrNumber', async (req, res) => {
+  try {
+    const { pnrNumber } = req.params;
+    const response = await fetch(
+      `https://indianrailapi.com/api/v2/PNRCheck/apikey/e6130a19e7d89e5b4e759e20788d1456/PNRNumber/${pnrNumber}/Route/1/`
+    );
+    
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    console.error('PNR Status Error:', error);
+    res.status(500).json({ error: 'Failed to fetch PNR status' });
+  }
 });
 
 // ─── ADD THIS HEALTH-CHECK ENDPOINT ─────────────────────────────────────────
