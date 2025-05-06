@@ -143,23 +143,50 @@ const BookingForm = ({ onClose, activeTab }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const errors = validateForm();
-    
     if (Object.keys(errors).length === 0) {
       setLoading(true);
       try {
-        const response = await fetch('http://localhost:5000/api/enhanced-bookings', {
+        // Find the selected train
+        const selectedTrain = trains.find(train => train.id === formData.train_id);
+        if (!selectedTrain) throw new Error('Selected train not found.');
+        // Generate PNR
+        const pnr = 'PNR' + Math.floor(Math.random() * 9000000000 + 1000000000);
+        // Calculate total price and seats string
+        const seatCount = parseInt(formData.seat_count);
+        const baseTotal = selectedTrain.price * seatCount;
+        const discount = appliedOffer ? (appliedOffer.discountPercentage / 100) * baseTotal : 0;
+        const totalPrice = baseTotal - discount;
+        const seats = `${seatCount} (auto-assigned)`;
+        // Build booking object
+        const newBooking = {
+          user_id: currentUser?.id,
+          train_id: formData.train_id,
+          seat_count: seatCount,
+          total_price: totalPrice,
+          passenger_name: formData.passenger_name,
+          passenger_email: formData.passenger_email,
+          passenger_phone: formData.passenger_phone,
+          passenger_address: formData.passenger_address,
+          status: 'confirmed',
+          from_city: selectedTrain.from_station,
+          to_city: selectedTrain.to_station,
+          date: new Date(selectedTrain.departure_time).toISOString().split('T')[0],
+          train: selectedTrain.name,
+          train_number: selectedTrain.train_number,
+          seats: seats,
+          pnr: pnr,
+          fare: selectedTrain.price,
+          class_type: selectedTrain.class_type
+        };
+        const response = await fetch('http://localhost:3000/api/bookings', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(formData),
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newBooking)
         });
-        
         if (!response.ok) throw new Error('Booking failed');
-        
         const data = await response.json();
         setSuccess(true);
-        // Reset form or redirect
+        // Optionally reset form or redirect
       } catch (error) {
         setError(error.message);
       } finally {
@@ -270,8 +297,8 @@ const BookingForm = ({ onClose, activeTab }) => {
                 <option value="">Select a train</option>
                 {trains
                   .filter(train =>
-                    (!fromStation || train.from_station === fromStation) &&
-                    (!toStation || train.to_station === toStation) &&
+                    (!fromStation || train.from_station.toLowerCase().includes(fromStation.toLowerCase())) &&
+                    (!toStation || train.to_station.toLowerCase().includes(toStation.toLowerCase())) &&
                     train.available_seats > 0
                   )
                   .map(train => (

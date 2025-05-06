@@ -201,3 +201,24 @@ SELECT
   '12203',
   '3A'
 WHERE NOT EXISTS (SELECT 1 FROM public.trains WHERE train_number = '12203' AND from_station = 'Delhi' AND to_station = 'Patna');
+
+-- Add missing sample train routes between major cities/stations
+INSERT INTO public.trains (name, from_station, to_station, departure_time, arrival_time, total_seats, available_seats, price, train_number, class_type)
+SELECT 'Ahmedabad Chennai Express', 'Ahmedabad Junction', 'Chennai Central', NOW() + INTERVAL '6 days', NOW() + INTERVAL '6 days 10 hours', 180, 150, 2100.00, '12346', '3A'
+WHERE NOT EXISTS (SELECT 1 FROM public.trains WHERE train_number = '12346' AND from_station = 'Ahmedabad Junction' AND to_station = 'Chennai Central');
+
+INSERT INTO public.trains (name, from_station, to_station, departure_time, arrival_time, total_seats, available_seats, price, train_number, class_type)
+SELECT 'Bangalore Ahmedabad Superfast', 'Bangalore City', 'Ahmedabad Junction', NOW() + INTERVAL '7 days', NOW() + INTERVAL '7 days 12 hours', 200, 160, 2300.00, '12347', '2A'
+WHERE NOT EXISTS (SELECT 1 FROM public.trains WHERE train_number = '12347' AND from_station = 'Bangalore City' AND to_station = 'Ahmedabad Junction');
+
+INSERT INTO public.trains (name, from_station, to_station, departure_time, arrival_time, total_seats, available_seats, price, train_number, class_type)
+SELECT 'Ahmedabad Bangalore Mail', 'Ahmedabad Junction', 'Bangalore City', NOW() + INTERVAL '8 days', NOW() + INTERVAL '8 days 13 hours', 180, 140, 2250.00, '12348', '3A'
+WHERE NOT EXISTS (SELECT 1 FROM public.trains WHERE train_number = '12348' AND from_station = 'Ahmedabad Junction' AND to_station = 'Bangalore City');
+
+INSERT INTO public.trains (name, from_station, to_station, departure_time, arrival_time, total_seats, available_seats, price, train_number, class_type)
+SELECT 'Ahmedabad Patna Express', 'Ahmedabad Junction', 'Patna', NOW() + INTERVAL '9 days', NOW() + INTERVAL '9 days 16 hours', 220, 180, 2400.00, '12349', '3A'
+WHERE NOT EXISTS (SELECT 1 FROM public.trains WHERE train_number = '12349' AND from_station = 'Ahmedabad Junction' AND to_station = 'Patna');
+
+INSERT INTO public.trains (name, from_station, to_station, departure_time, arrival_time, total_seats, available_seats, price, train_number, class_type)
+SELECT 'Chennai Ahmedabad SF', 'Chennai Central', 'Ahmedabad Junction', NOW() + INTERVAL '10 days', NOW() + INTERVAL '10 days 10 hours', 200, 170, 2150.00, '12350', '2A'
+WHERE NOT EXISTS (SELECT 1 FROM public.trains WHERE train_number = '12350' AND from_station = 'Chennai Central' AND to_station = 'Ahmedabad Junction');
