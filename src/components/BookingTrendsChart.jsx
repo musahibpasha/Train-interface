@@ -12,7 +12,7 @@ const BookingTrendsChart = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/enhanced-booking-trends');
+        const response = await fetch('http://localhost:3000/api/enhanced-booking-trends');
         if (!response.ok) throw new Error('Failed to fetch data');
         const trendsData = await response.json();
         
@@ -125,4 +125,4 @@ const BookingTrendsChart = () => {
   );
 };
 
-export default BookingTrendsChart; 
+export default BookingTrendsChart;

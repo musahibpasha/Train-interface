@@ -33,8 +33,14 @@ const LiveTrainStatus = ({ showLiveStatus, location, coordinates, fetchLocation,
       setError(null);
 
       try {
-        const res  = await fetch(`/api/bookings?userId=${currentUser.id}`);
+        const res = await fetch(`/api/bookings?userId=${currentUser.id}`);
+        if (!res.ok) {
+          throw new Error('Failed to fetch bookings');
+        }
         const data = await res.json();
+        if (!data) {
+          throw new Error('No data received');
+        }
         setMyBookings(data || []);
       } catch (err) {
         console.error('Error fetching bookings:', err);

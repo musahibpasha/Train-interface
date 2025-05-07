@@ -18,12 +18,12 @@ const MyBookings = () => {
   const fetchBookings = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`/api/bookings?userId=${currentUser.id}`);
+      const res = await fetch(`http://localhost:3000/api/bookings?userId=${currentUser.id}`);
       const data = await res.json();
       setBookings(data || []);
     } catch (err) {
       console.error('Error fetching bookings:', err);
-      // setError('Failed to fetch bookings');
+      setError('Failed to fetch bookings. Please try again later.');
     } finally {
       setLoading(false);
     }

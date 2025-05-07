@@ -9,7 +9,7 @@ const HotelRecommendations = () => {
   useEffect(() => {
     const fetchRecommendations = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/hotel-recommendations?limit=4');
+        const response = await fetch('http://localhost:3000/api/hotel-recommendations?limit=4');
         if (!response.ok) throw new Error('Failed to fetch recommendations');
         const data = await response.json();
         setRecommendations(data);
@@ -100,4 +100,4 @@ const HotelRecommendations = () => {
   );
 };
 
-export default HotelRecommendations; 
+export default HotelRecommendations;

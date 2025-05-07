@@ -50,14 +50,16 @@ app.get('/api/trains', async (_req, res) => {
 
 // GET all bookings
 app.get('/api/bookings', async (req, res) => {
+  console.log('Request received for /api/bookings with userId:', req.query.userId);
   const { data, error } = await supabase
     .from('bookings')
     .select('*')
-    .order('booking_date', { ascending: true })
-
-  console.log('bookings →', { data, error })  // <-- for debugging
-
-  if (error) return res.status(500).json({ error: error.message })
+    .eq('user_id', req.query.userId);
+  if (error) {
+    console.error('Error fetching bookings:', error);
+    return res.status(500).json({ error: error.message });
+  }
+  console.log('Bookings fetched successfully:', data);
   res.json(data)
 })
 
@@ -95,10 +97,21 @@ app.post('/api/bookings', async (req, res) => {
 
 // Bookings per month (for charts)
 app.get('/api/booking-trends', async (_req, res) => {
+  console.log('Request received for /api/booking-trends');
   const { data, error } = await supabase
     .from('bookings')
     .select('booking_date');
-  if (error) return res.status(500).json({ error: error.message });
+  if (error) {
+    console.error('Error fetching booking trends:', error);
+    return res.status(500).json({ error: error.message });
+  }
+
+  if (!data || data.length === 0) {
+    console.warn('No booking data found');
+    return res.status(404).json({ error: 'No booking data found' });
+  }
+
+  console.log('Raw booking data:', data);
 
   // Group by month
   const trends = {};
@@ -112,6 +125,7 @@ app.get('/api/booking-trends', async (_req, res) => {
     .map(([month, count]) => ({ month, count }))
     .sort((a, b) => a.month.localeCompare(b.month));
 
+  console.log('Formatted booking trends:', result);
   res.json(result);
 });
 
