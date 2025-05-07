@@ -258,15 +258,45 @@ app.get('/api/cities', async (_req, res) => {
 app.get('/api/pnr-status/:pnrNumber', async (req, res) => {
   try {
     const { pnrNumber } = req.params;
-    const response = await fetch(
-      `https://indianrailapi.com/api/v2/PNRCheck/apikey/e6130a19e7d89e5b4e759e20788d1456/PNRNumber/${pnrNumber}/Route/1/`
-    );
-    
-    const data = await response.json();
-    res.json(data);
+
+    // Add 'PNR' prefix to the PNR number for the query
+    const prefixedPnrNumber = `PNR${pnrNumber}`;
+
+    // Query the bookings table for the PNR number
+    const { data, error } = await supabase
+      .from('bookings')
+      .select('train, train_number, from_city, to_city, date, class_type, seats, status, fare')
+      .eq('pnr', prefixedPnrNumber)
+      .single();
+
+    if (error || !data) {
+      console.warn(`PNR not found in database: ${prefixedPnrNumber}`);
+      return res.status(404).json({
+        error: 'PNR not found in the database.',
+        details: error ? error.message : 'No matching record found.'
+      });
+    }
+
+    // Format the response to match the expected structure
+    const formattedData = {
+      TrainNo: data.train_number,
+      TrainName: data.train,
+      FromStation: data.from_city,
+      ToStation: data.to_city,
+      JourneyDate: data.date,
+      Class: data.class_type,
+      PassengerStatus: data.seats,
+      ChartStatus: data.status,
+      Fare: data.fare
+    };
+
+    res.json(formattedData);
   } catch (error) {
     console.error('PNR Status Error:', error);
-    res.status(500).json({ error: 'Failed to fetch PNR status' });
+    res.status(500).json({
+      error: 'An unexpected error occurred while fetching PNR status.',
+      details: error.message
+    });
   }
 });
 

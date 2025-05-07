@@ -6,7 +6,6 @@ import offers2 from '../assests/offers2.jpeg';
 const sampleOffers = [
     {
         id: 'offer-1',
-        
         description: 'This is a sample offer with a 20% discount.',
         discountPercentage: 20,
         code: 'SAMPLE20',
@@ -16,7 +15,6 @@ const sampleOffers = [
     },
     {
         id: 'offer-2',
-        
         description: 'This is another sample offer with a 15% discount.',
         discountPercentage: 15,
         code: 'SAMPLE15',
@@ -26,12 +24,92 @@ const sampleOffers = [
     },
     {
         id: 'offer-3',
-        
         description: 'Enjoy an exclusive deal with our special offer!',
         discountPercentage: 10,
         code: 'SAMPLE10',
         validUntil: '2025-06-30',
         type: 'exclusive',
+        image: offers2,
+    },
+    {
+        id: 'offer-4',
+        description: 'Flat 25% off on all bookings this summer.',
+        discountPercentage: 25,
+        code: 'SUMMER25',
+        validUntil: '2025-07-31',
+        type: 'summer',
+        image: adaniImage,
+    },
+    {
+        id: 'offer-5',
+        description: 'Book now and get 30% off on your next trip.',
+        discountPercentage: 30,
+        code: 'NEXT30',
+        validUntil: '2025-08-31',
+        type: 'next-trip',
+        image: offers,
+    },
+    {
+        id: 'offer-6',
+        description: 'Special 50% discount for first-time users.',
+        discountPercentage: 50,
+        code: 'FIRST50',
+        validUntil: '2025-12-31',
+        type: 'first-time',
+        image: offers2,
+    },
+    {
+        id: 'offer-7',
+        description: 'Get 40% off on group bookings.',
+        discountPercentage: 40,
+        code: 'GROUP40',
+        validUntil: '2025-09-30',
+        type: 'group',
+        image: adaniImage,
+    },
+    {
+        id: 'offer-8',
+        description: 'Special 35% discount for weekend trips.',
+        discountPercentage: 35,
+        code: 'WEEKEND35',
+        validUntil: '2025-10-31',
+        type: 'weekend',
+        image: offers,
+    },
+    {
+        id: 'offer-9',
+        description: 'Flat 20% cashback on all bookings.',
+        discountPercentage: 20,
+        code: 'CASHBACK20',
+        validUntil: '2025-11-30',
+        type: 'cashback',
+        image: offers2,
+    },
+    {
+        id: 'offer-10',
+        description: 'Exclusive 45% discount for premium members.',
+        discountPercentage: 45,
+        code: 'PREMIUM45',
+        validUntil: '2025-12-31',
+        type: 'premium',
+        image: adaniImage,
+    },
+    {
+        id: 'offer-11',
+        description: 'Book early and save 25% on your tickets.',
+        discountPercentage: 25,
+        code: 'EARLY25',
+        validUntil: '2025-08-15',
+        type: 'early-bird',
+        image: offers,
+    },
+    {
+        id: 'offer-12',
+        description: 'Festive season offer: 50% off on all routes.',
+        discountPercentage: 50,
+        code: 'FESTIVE50',
+        validUntil: '2025-12-25',
+        type: 'festive',
         image: offers2,
     }
 ];
@@ -45,8 +123,8 @@ const getRandomOffersLocal = (count) => {
         id: `${offer.id}-${index}`
     }));
 };
-
-const OffersSecion = ({ initialCount = 3 }) => {
+//number of offers to display
+const OffersSecion = ({ initialCount = sampleOffers.length }) => {
     const [offersList] = useState(getRandomOffersLocal(initialCount));
 
     return (

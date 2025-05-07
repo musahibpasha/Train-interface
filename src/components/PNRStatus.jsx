@@ -8,13 +8,13 @@ const PNRStatus = () => {
 
   const handleCheckPNR = async () => {
     if (!pnrNumber) {
-      setError('Please enter a PNR number');
-      return;
+        setError('Please enter a PNR number');
+        return;
     }
 
     if (pnrNumber.length !== 10) {
-      setError('PNR number must be 10 digits');
-      return;
+        setError('PNR number must be 10 digits');
+        return;
     }
 
     setLoading(true);
@@ -22,26 +22,37 @@ const PNRStatus = () => {
     setPnrStatus(null);
 
     try {
-      const response = await fetch(`/api/pnr-status/${pnrNumber}`);
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch PNR status');
-      }
+        const response = await fetch(`/api/pnr-status/${pnrNumber}`);
 
-      const data = await response.json();
-      console.log('API Response:', data); // Log the API response
+        if (!response.ok) {
+            throw new Error('Failed to fetch PNR status');
+        }
 
-      if (data.ResponseCode === "404" || data.ResponseCode === "401") {
-        throw new Error(data.Message || 'Invalid PNR number');
-      }
+        const data = await response.json();
 
-      setPnrStatus(data);
-      console.log('PNR Status Set:', data); // Log the PNR status being set
+        if (data.ResponseCode === "404" || data.ResponseCode === "401") {
+            setError('PNR not found or invalid');
+            return;
+        }
+
+        // Map API response to UI-friendly format
+        const formattedData = {
+            TrainNo: data.TrainNo || 'N/A',
+            TrainName: data.TrainName || 'N/A',
+            FromStation: data.FromStation || 'N/A',
+            ToStation: data.ToStation || 'N/A',
+            JourneyDate: data.JourneyDate || 'N/A',
+            Class: data.Class || 'N/A',
+            PassengerStatus: data.PassengerStatus || [],
+            ChartStatus: data.ChartStatus || 'Not available',
+        };
+
+        setPnrStatus(formattedData);
     } catch (err) {
-      console.error('PNR Status Error:', err);
-      setError(err.message || 'Failed to fetch PNR status. Please try again.');
+        console.error('PNR Status Error:', err);
+        setError(err.message || 'Failed to fetch PNR status. Please try again.');
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
   };
 
@@ -116,7 +127,7 @@ const PNRStatus = () => {
               <div className="mt-6">
                 <h4 className="font-medium text-gray-800 mb-2">Passenger Status</h4>
                 <div className="bg-gray-50 rounded-md p-4">
-                  {pnrStatus.PassengerStatus?.length > 0 ? (
+                  {Array.isArray(pnrStatus.PassengerStatus) && pnrStatus.PassengerStatus.length > 0 ? (
                     pnrStatus.PassengerStatus.map((passenger, index) => (
                       <div key={index} className="mb-2 last:mb-0">
                         <p className="text-sm">

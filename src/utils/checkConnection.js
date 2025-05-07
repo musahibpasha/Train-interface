@@ -106,4 +106,40 @@ export const checkSupabaseConnection = async () => {
   return results;
 };
 
+/**
+ * Show a custom alert box with rounded corners and smooth animations
+ * @param {string} message - The message to display in the alert box
+ */
+const showAlert = (message) => {
+    const alertBox = document.createElement('div');
+    alertBox.textContent = message;
+    alertBox.style.position = 'fixed';
+    alertBox.style.top = '50%';
+    alertBox.style.left = '50%';
+    alertBox.style.transform = 'translate(-50%, -50%)';
+    alertBox.style.backgroundColor = '#f8d7da';
+    alertBox.style.color = '#721c24';
+    alertBox.style.padding = '20px';
+    alertBox.style.borderRadius = '10px';
+    alertBox.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+    alertBox.style.zIndex = '1000';
+    alertBox.style.opacity = '0';
+    alertBox.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+
+    document.body.appendChild(alertBox);
+
+    // Trigger animation
+    setTimeout(() => {
+        alertBox.style.opacity = '1';
+        alertBox.style.transform = 'translate(-50%, -50%) scale(1.1)';
+    }, 10);
+
+    // Remove after 3 seconds
+    setTimeout(() => {
+        alertBox.style.opacity = '0';
+        alertBox.style.transform = 'translate(-50%, -50%) scale(0.9)';
+        setTimeout(() => document.body.removeChild(alertBox), 500);
+    }, 3000);
+};
+
 export default checkSupabaseConnection;
