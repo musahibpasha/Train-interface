@@ -69,6 +69,9 @@ const AppContent = () => {
   const [activeTab, setActiveTab] = useState('book');
   const [cityList, setCityList] = useState([]);
 
+  // Define showLiveStatus based on the activeTab state
+  const showLiveStatus = activeTab === 'live';
+
   useEffect(() => {
     fetch('/api/cities')
       .then(res => res.json())

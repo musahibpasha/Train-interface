@@ -11,7 +11,7 @@ const Home = () => {
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-8">Destination Statistics</h1>
       <div className="mb-8 flex items-center space-x-6">
-        <label>
+        <label className="font-semibold">
           <input
             type="radio"
             name="mode"
@@ -20,9 +20,9 @@ const Home = () => {
             onChange={() => setMode('book')}
             className="mr-2"
           />
-          Book Train Tickets
+          Book Train Ticket
         </label>
-        <label>
+        <label className="font-semibold">
           <input
             type="radio"
             name="mode"
@@ -33,7 +33,7 @@ const Home = () => {
           />
           Check PNR Status
         </label>
-        <label>
+        <label className="font-semibold">
           <input
             type="radio"
             name="mode"
@@ -44,7 +44,7 @@ const Home = () => {
           />
           Live Train Status
         </label>
-        <label>
+        <label className="font-semibold">
           <input
             type="radio"
             name="mode"

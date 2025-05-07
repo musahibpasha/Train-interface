@@ -27,6 +27,17 @@ const HotelRecommendations = () => {
   if (error) return <div className="text-red-500">Error: {error}</div>;
 
   const HotelCard = ({ hotel, index }) => {
+    const hotelLinks = {
+      'Mumbai Bay View': 'https://www.oberoihotels.com',
+      'Mumbai Business Hotel': 'https://www.mumbaihousehotels.com',
+      'The Resort Mumbai': 'https://www.theresortmumbai.com',
+      'SunCity Hotels': 'https://www.thesuncityhotels.com',
+      'The Grand Delhi': 'https://www.thegrandnewdelhi.com',
+      'Delhi Heritage Inn': 'https://hotelheritageinn.in'
+    };
+
+    const hotelLink = hotelLinks[hotel.name] || '#';
+
     const cardContent = (
       <div className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
         <div className="relative h-48">
@@ -61,7 +72,10 @@ const HotelRecommendations = () => {
             <span className="text-lg font-bold text-green-600">
               ₹{hotel.price_per_night}/night
             </span>
-            <button className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors duration-200">
+            <button
+              className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors duration-200"
+              onClick={() => window.open(hotelLink, '_blank')}
+            >
               View Details
             </button>
           </div>

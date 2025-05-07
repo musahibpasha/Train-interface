@@ -2,18 +2,17 @@ import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import LoginModal from './LoginModal';
 import MyBookings from './MyBookings';
-import AvailableTrains from './AvailableTrains'; // Import the new component
 import PromoMarquee from './PromoMarquee';
+import { Train } from 'lucide-react';
 
 const Header = () => {
   const { currentUser, logout } = useAuth();
   const [showDropdown, setShowDropdown] = useState(false);
-  const [showBookingsPage, setShowBookingsPage] = useState(false); // State to toggle MyBookingsPage visibility
+  const [showBookingsPage, setShowBookingsPage] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [isSignup, setIsSignup] = useState(false);
   const dropdownRef = useRef(null);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -30,21 +29,17 @@ const Header = () => {
   const handleLogout = async () => {
     await logout();
     setShowDropdown(false);
-    setShowBookingsPage(false); // Ensure MyBookingsPage is hidden after logout
+    setShowBookingsPage(false);
   };
 
   return (
     <header className="bg-white shadow-sm">
-      <div className="max-w-6xl mx-auto px-4 py-2">
+      <div className="w-full mx-auto py-2 pr-4">
         <div className="flex justify-between items-center">
-          {/* Logo */}
-          <div className="font-bold text-xl" style={{ color: 'var(--purple-primary)' }}>
-            train-book
-          </div>
-
-          {/* Right side */}
+          <h1 className="text-2xl font-bold text-center pl-20 hover:text-purple-700 transition-transform transform hover:scale-105">
+             SureTrack <span className="text-sm text-gray-500">Your Travel Companion</span>
+          </h1>
           <div className="flex items-left space-x-4">
-            {/* User Dropdown */}
             <div className="relative" ref={dropdownRef}>
               <button
                 className="flex items-center text-gray-700 hover:text-purple-700"
@@ -79,8 +74,8 @@ const Header = () => {
                       <div className="py-2">
                         <button
                           onClick={() => {
-                            setShowBookingsPage(!showBookingsPage); // Toggle MyBookingsPage visibility
-                            setShowDropdown(false); // Close dropdown
+                            setShowBookingsPage(!showBookingsPage);
+                            setShowDropdown(false);
                           }}
                           className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-purple-50"
                         >
@@ -130,11 +125,8 @@ const Header = () => {
         </div>
       </div>
 
-      {/* Add the PromoMarquee component */}
+      {/* Promo Marquee */}
       <PromoMarquee />
-
-      {/* Available Trains */}
-      {/* {!showBookingsPage && <AvailableTrains />} */}
 
       {/* My Bookings Page */}
       {showBookingsPage && <MyBookings />}

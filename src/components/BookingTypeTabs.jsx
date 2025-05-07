@@ -21,10 +21,10 @@ const BookingTypeTabs = ({ activeTab: initialActiveTab, onTabChange }) => {
   }
 
   const tabs = [
-    { id: 'book', label: 'Book Train Tickets' },
-    { id: 'pnr',  label: 'Check PNR Status' },
-    { id: 'live', label: 'Live Train Status' },
-    { id: 'charts', label: 'Charts' }
+    { id: 'book', label: <strong style={{ fontSize: '1.25rem' }}>Book Train Tickets</strong> },
+    { id: 'pnr',  label: <strong style={{ fontSize: '1.25rem' }}>Check PNR Status</strong> },
+    { id: 'live', label: <strong style={{ fontSize: '1.25rem' }}>Live Train Status</strong> },
+    { id: 'charts', label: <strong style={{ fontSize: '1.25rem' }}>Charts</strong> }
   ];
 
   const fetchLocation = async (fromCity, toCity) => {
@@ -89,15 +89,7 @@ const BookingTypeTabs = ({ activeTab: initialActiveTab, onTabChange }) => {
     }
 
     if (activeTab === 'live') {
-      return (
-        <LiveTrainStatus
-          showLiveStatus={true}
-          location={location}
-          coordinates={coordinates}
-          fetchLocation={fetchLocation}
-          trainPath={trainPath}
-        />
-      );
+      return null; // Rendered in App.jsx
     }
 
     if (activeTab === 'charts') {
